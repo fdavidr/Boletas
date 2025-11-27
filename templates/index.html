@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOLETAS-V1 - Sistema de Boletas de Pago</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content" style="display: flex; align-items: center; justify-content: center; gap: 1.5rem;">
+            <img id="logo_empresa" src="" alt="Logo" style="display: none; max-height: 80px; max-width: 120px; object-fit: contain;">
+            <div style="text-align: center;">
+                <h1 id="nombre_empresa">📄 SANTANDERRIOJA</h1>
+                <p>Sistema de Generación de Boletas de Pago</p>
+            </div>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="nav-content">
+            <a href="/" class="nav-link">🏠 Inicio</a>
+            <a href="/mensual" class="nav-link">📄 Boleta Mensual</a>
+            <a href="/aguinaldo" class="nav-link">🎁 Aguinaldo</a>
+            <a href="/liquidacion" class="nav-link">📋 Liquidación</a>
+            <a href="/empleados" class="nav-link">👥 Empleados</a>
+            <a href="/config" class="nav-link">⚙️ Configuración</a>
+            <a href="/logout" class="nav-link" style="margin-left: auto;">🚪 Cerrar Sesión</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="form-container fade-in">
+            <h2 class="form-title">Bienvenido al Sistema de Boletas</h2>
+            <p class="form-subtitle">Seleccione el tipo de boleta que desea generar</p>
+            
+            <div class="cards-grid">
+                <a href="/mensual" class="card green">
+                    <div class="card-icon">📄</div>
+                    <h3 class="card-title">Boleta Mensual</h3>
+                    <p class="card-description">
+                        Genere boletas de pago mensual con cálculo automático de ingresos y egresos
+                    </p>
+                </a>
+
+                <a href="/aguinaldo" class="card orange">
+                    <div class="card-icon">🎁</div>
+                    <h3 class="card-title">Boleta de Aguinaldo</h3>
+                    <p class="card-description">
+                        Genere boletas de aguinaldo con validación de períodos trabajados
+                    </p>
+                </a>
+
+                <a href="/liquidacion" class="card purple">
+                    <div class="card-icon">📋</div>
+                    <h3 class="card-title">Boleta de Liquidación</h3>
+                    <p class="card-description">
+                        Genere boletas de liquidación con cálculo de beneficios y deducciones
+                    </p>
+                </a>
+
+                <a href="/empleados" class="card orange">
+                    <div class="card-icon">👥</div>
+                    <h3 class="card-title">Gestión de Empleados</h3>
+                    <p class="card-description">
+                        Registre y administre los datos de sus empleados
+                    </p>
+                </a>
+
+                <a href="/config" class="card blue">
+                    <div class="card-icon">⚙️</div>
+                    <h3 class="card-title">Configuración</h3>
+                    <p class="card-description">
+                        Configure los datos de su empresa y personalice el sistema
+                    </p>
+                </a>
+            </div>
+        </div>
+
+        <div class="form-container fade-in" style="animation-delay: 0.2s;">
+            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">✨ Características Principales</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                <div>
+                    <h4 style="color: var(--secondary-color);">🚀 Rápido y Eficiente</h4>
+                    <p style="color: var(--text-light);">Genere boletas profesionales en segundos</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--success-color);">📊 Cálculos Automáticos</h4>
+                    <p style="color: var(--text-light);">Totales y deducciones calculadas automáticamente</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--warning-color);">📱 Responsive</h4>
+                    <p style="color: var(--text-light);">Funciona en cualquier dispositivo</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--purple-color);">🔒 Seguro</h4>
+                    <p style="color: var(--text-light);">Sus datos están protegidos localmente</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p><strong>BOLETAS-V1</strong> © 2025 - Sistema de Gestión de Boletas de Pago</p>
+        <p>Desarrollado con ❤️ para optimizar su gestión de recursos humanos</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Cargar datos de la empresa al iniciar
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const response = await fetch('/api/empresa');
+                const data = await response.json();
+                
+                if (data.nombre) {
+                    document.getElementById('nombre_empresa').textContent = data.nombre;
+                }
+                
+                if (data.logo_path) {
+                    const logoImg = document.getElementById('logo_empresa');
+                    logoImg.src = '/' + data.logo_path;
+                    logoImg.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error al cargar datos de empresa:', error);
+            }
+        });
+    </script>
+</body>
+</html>

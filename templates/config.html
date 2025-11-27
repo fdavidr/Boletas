@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración - BOLETAS-V1</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>⚙️ Configuración de Empresa</h1>
+            <p>Configure los datos de su empresa</p>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="nav-content">
+            <a href="/" class="nav-link">🏠 Inicio</a>
+            <a href="/mensual" class="nav-link">📄 Boleta Mensual</a>
+            <a href="/aguinaldo" class="nav-link">🎁 Aguinaldo</a>
+            <a href="/liquidacion" class="nav-link">📋 Liquidación</a>
+            <a href="/config" class="nav-link">⚙️ Configuración</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="alert" class="alert"></div>
+
+        <div class="form-container fade-in">
+            <form id="configForm" enctype="multipart/form-data">
+                <div class="form-section">
+                    <h3 class="section-title">DATOS DE LA EMPRESA</h3>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="nombre" class="required">Nombre de la Empresa</label>
+                            <input type="text" id="nombre" name="nombre" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="eslogan">Eslogan</label>
+                            <input type="text" id="eslogan" name="eslogan" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="nit">NIT</label>
+                            <input type="text" id="nit" name="nit" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="contabilidad">Contabilidad</label>
+                            <input type="text" id="contabilidad" name="contabilidad" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="actividad">Actividad Económica</label>
+                            <input type="text" id="actividad" name="actividad" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="telefono">Teléfono</label>
+                            <input type="text" id="telefono" name="telefono" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="direccion">Dirección</label>
+                        <input type="text" id="direccion" name="direccion" class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title">LOGO DE LA EMPRESA</h3>
+                    
+                    <div class="form-group">
+                        <label for="logo">Seleccionar Logo (PNG, JPG - Max 5MB)</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="logo" name="logo" accept=".png,.jpg,.jpeg,.gif">
+                            <label for="logo" class="file-input-label">📁 Seleccionar Archivo</label>
+                            <span class="file-name" id="fileName">Ningún archivo seleccionado</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-box">
+                        💡 <strong>Recomendación:</strong> Use una imagen cuadrada (200x200 px) en formato PNG con fondo transparente para mejores resultados.
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-success">
+                        💾 Guardar Configuración
+                    </button>
+                    <a href="/" class="btn btn-secondary">
+                        ❌ Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p><strong>BOLETAS-V1</strong> © 2025 - Sistema de Gestión de Boletas de Pago</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Cargar datos actuales
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/empresa');
+                const data = await response.json();
+                
+                document.getElementById('nombre').value = data.nombre || '';
+                document.getElementById('eslogan').value = data.eslogan || '';
+                document.getElementById('nit').value = data.nit || '';
+                document.getElementById('contabilidad').value = data.contabilidad || '';
+                document.getElementById('actividad').value = data.actividad || '';
+                document.getElementById('telefono').value = data.telefono || '';
+                document.getElementById('direccion').value = data.direccion || '';
+            } catch (error) {
+                console.error('Error al cargar configuración:', error);
+            }
+        }
+
+        // Mostrar nombre de archivo seleccionado
+        document.getElementById('logo').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name || 'Ningún archivo seleccionado';
+            document.getElementById('fileName').textContent = fileName;
+        });
+
+        // Guardar configuración
+        document.getElementById('configForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner"></span> Guardando...';
+            submitBtn.disabled = true;
+            
+            try {
+                const formData = new FormData(this);
+                
+                const response = await fetch('/api/empresa', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                } else {
+                    showAlert(result.message, 'error');
+                }
+            } catch (error) {
+                showAlert('Error al guardar la configuración: ' + error.message, 'error');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Cargar configuración al iniciar
+        loadConfig();
+    </script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Flask
+instance/
+.webassets-cache
+
+# Output PDFs (se generan dinámicamente)
+output/*.pdf
+
+# Uploads temporales
+static/uploads/*
+!static/uploads/.gitkeep
+
+# Config (se regeneran automáticamente)
+config/empleados.json
+config/settings.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/

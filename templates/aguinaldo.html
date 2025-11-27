@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boleta de Aguinaldo - BOLETAS-V1</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>🎁 Boleta de Aguinaldo</h1>
+            <p>Complete los datos para generar la boleta</p>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="nav-content">
+            <a href="/" class="nav-link">🏠 Inicio</a>
+            <a href="/mensual" class="nav-link">📄 Boleta Mensual</a>
+            <a href="/aguinaldo" class="nav-link">🎁 Aguinaldo</a>
+            <a href="/liquidacion" class="nav-link">📋 Liquidación</a>
+            <a href="/empleados" class="nav-link">👥 Empleados</a>
+            <a href="/config" class="nav-link">⚙️ Configuración</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="alert" class="alert"></div>
+
+        <div class="form-container fade-in">
+            <form id="aguinaldoForm">
+                <div class="form-section">
+                    <h3 class="section-title">DATOS DEL EMPLEADO</h3>
+                    
+                    <div class="form-grid">
+                        <div class="form-group" style="position: relative;">
+                            <label for="nombre_completo" class="required">Nombre Completo</label>
+                            <input type="text" id="nombre_completo" name="nombre_completo" class="form-control" 
+                                   required autocomplete="off" onkeyup="buscarEmpleados()" 
+                                   onfocus="mostrarListaEmpleados()">
+                            <div id="lista_empleados_sugerencias" class="autocomplete-lista"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="ci" class="required">C.I.</label>
+                            <input type="text" id="ci" name="ci" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="cargo" class="required">Cargo</label>
+                            <input type="text" id="cargo" name="cargo" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="anio" class="required">Año</label>
+                            <input type="number" id="anio" name="anio" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title orange">PERÍODO TRABAJADO</h3>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="fecha_ingreso" class="required">Fecha de Ingreso</label>
+                            <input type="date" id="fecha_ingreso" name="fecha_ingreso" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="fecha_inicio" class="required">Fecha Inicio Período</label>
+                            <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control" 
+                                   required onchange="calcularDias()">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="fecha_fin" class="required">Fecha Fin Período</label>
+                            <input type="date" id="fecha_fin" name="fecha_fin" class="form-control" 
+                                   required onchange="calcularDias()">
+                        </div>
+                    </div>
+                    
+                    <div class="info-box warning">
+                        💡 <strong>Importante:</strong> El período debe ser mayor o igual a 3 meses (90 días).
+                        <div id="dias_info" style="margin-top: 0.5rem; font-weight: bold;"></div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title green">CÁLCULO DEL AGUINALDO</h3>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="promedio_ultimos_3_pagos">Promedio últimos 3 pagos (Bs.)</label>
+                            <input type="number" id="promedio_ultimos_3_pagos" name="promedio_ultimos_3_pagos" 
+                                   class="form-control" step="0.01" value="0.00" oninput="calcularTotal()">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="otros">Otros conceptos (Bs.)</label>
+                            <input type="number" id="otros" name="otros" class="form-control" 
+                                   step="0.01" value="0.00" oninput="calcularTotal()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="totals-box">
+                    <div class="total-item">
+                        <span class="total-label">LÍQUIDO PAGABLE:</span>
+                        <span class="total-value" id="liquido_pagable">0.00 Bs.</span>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title">FECHA DE EMISIÓN</h3>
+                    
+                    <div class="form-group">
+                        <label for="fecha_emision">Fecha (dd/mm/aaaa)</label>
+                        <input type="text" id="fecha_emision" name="fecha_emision" class="form-control" 
+                               placeholder="24/11/2025">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="metodo_pago">Método de Pago</label>
+                        <select id="metodo_pago" name="metodo_pago" class="form-control">
+                            <option value="EFECTIVO" selected>Efectivo</option>
+                            <option value="TRANSFERENCIA">Transferencia Bancaria</option>
+                            <option value="CHEQUE">Cheque</option>
+                            <option value="DEPOSITO">Depósito Bancario</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-warning">
+                        📄 Generar PDF
+                    </button>
+                    <a href="/" class="btn btn-secondary">
+                        ❌ Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p><strong>BOLETAS-V1</strong> © 2025 - Sistema de Gestión de Boletas de Pago</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        let empleados = [];
+        
+        // Cargar empleados al iniciar
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const response = await fetch('/api/empleados');
+                const result = await response.json();
+                if (result.success) {
+                    empleados = result.empleados;
+                }
+            } catch (error) {
+                console.error('Error al cargar empleados:', error);
+            }
+        });
+        
+        // Buscar empleados
+        function buscarEmpleados() {
+            const input = document.getElementById('nombre_completo');
+            const termino = input.value.toLowerCase();
+            const lista = document.getElementById('lista_empleados_sugerencias');
+            
+            if (termino.length < 2) {
+                lista.style.display = 'none';
+                return;
+            }
+            
+            const filtrados = empleados.filter(emp => 
+                emp.nombre_completo.toLowerCase().includes(termino) ||
+                emp.ci.includes(termino)
+            );
+            
+            if (filtrados.length === 0) {
+                lista.style.display = 'none';
+                return;
+            }
+            
+            let html = '';
+            filtrados.forEach(emp => {
+                html += `
+                    <div class="autocomplete-item" onclick="seleccionarEmpleado(${emp.id})">
+                        <strong>${emp.nombre_completo}</strong><br>
+                        <small>C.I.: ${emp.ci} | Cargo: ${emp.cargo}</small>
+                    </div>
+                `;
+            });
+            
+            lista.innerHTML = html;
+            lista.style.display = 'block';
+        }
+        
+        // Mostrar lista
+        function mostrarListaEmpleados() {
+            if (empleados.length > 0 && document.getElementById('nombre_completo').value.length >= 2) {
+                buscarEmpleados();
+            }
+        }
+        
+        // Seleccionar empleado
+        function seleccionarEmpleado(id) {
+            const emp = empleados.find(e => e.id === id);
+            if (emp) {
+                document.getElementById('nombre_completo').value = emp.nombre_completo;
+                document.getElementById('ci').value = emp.ci;
+                document.getElementById('cargo').value = emp.cargo;
+                document.getElementById('lista_empleados_sugerencias').style.display = 'none';
+            }
+        }
+        
+        // Cerrar lista al hacer clic fuera
+        document.addEventListener('click', function(event) {
+            const lista = document.getElementById('lista_empleados_sugerencias');
+            const input = document.getElementById('nombre_completo');
+            if (event.target !== input && !lista.contains(event.target)) {
+                lista.style.display = 'none';
+            }
+        });
+        
+        // Establecer año actual
+        document.getElementById('anio').value = new Date().getFullYear();
+
+        // Calcular días trabajados
+        function calcularDias() {
+            const fechaInicio = document.getElementById('fecha_inicio').value;
+            const fechaFin = document.getElementById('fecha_fin').value;
+            
+            if (!fechaInicio || !fechaFin) {
+                return;
+            }
+            
+            // Convertir yyyy-mm-dd a Date
+            const inicio = new Date(fechaInicio);
+            const fin = new Date(fechaFin);
+            
+            // Calcular días
+            const dias = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24));
+            const meses = (dias / 30).toFixed(1);
+            
+            const infoDiv = document.getElementById('dias_info');
+            if (dias >= 90) {
+                infoDiv.innerHTML = `✅ Período válido: ${dias} días (${meses} meses)`;
+                infoDiv.style.color = 'var(--success-color)';
+            } else {
+                infoDiv.innerHTML = `❌ Período inválido: ${dias} días (mínimo 90 días requeridos)`;
+                infoDiv.style.color = 'var(--danger-color)';
+            }
+        }
+
+        // Calcular total
+        function calcularTotal() {
+            const promedio = parseFloat(document.getElementById('promedio_ultimos_3_pagos').value) || 0;
+            const otros = parseFloat(document.getElementById('otros').value) || 0;
+            const total = promedio + otros;
+            
+            document.getElementById('liquido_pagable').textContent = formatCurrency(total) + ' Bs.';
+        }
+
+        // Generar boleta
+        document.getElementById('aguinaldoForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Validar período
+            const fechaInicio = document.getElementById('fecha_inicio').value;
+            const fechaFin = document.getElementById('fecha_fin').value;
+            const fechaIngreso = document.getElementById('fecha_ingreso').value;
+            
+            if (!fechaInicio || !fechaFin || !fechaIngreso) {
+                showAlert('❌ Por favor complete todas las fechas', 'error');
+                return;
+            }
+            
+            // Calcular días
+            const inicio = new Date(fechaInicio);
+            const fin = new Date(fechaFin);
+            const dias = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24));
+            
+            if (dias < 90) {
+                showAlert('❌ El período debe ser mayor o igual a 90 días', 'error');
+                return;
+            }
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner"></span> Generando...';
+            submitBtn.disabled = true;
+            
+            try {
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData);
+                
+                // Convertir fechas de yyyy-mm-dd a dd/mm/yyyy
+                if (data.fecha_ingreso) {
+                    data.fecha_ingreso = data.fecha_ingreso.split('-').reverse().join('/');
+                }
+                if (data.fecha_inicio) {
+                    data.fecha_inicio = data.fecha_inicio.split('-').reverse().join('/');
+                }
+                if (data.fecha_fin) {
+                    data.fecha_fin = data.fecha_fin.split('-').reverse().join('/');
+                }
+                
+                const response = await fetch('/api/boleta/aguinaldo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('✅ ' + result.message, 'success');
+                    
+                    setTimeout(() => {
+                        downloadPDF(result.filename);
+                        setTimeout(() => {
+                            this.reset();
+                            document.getElementById('anio').value = new Date().getFullYear();
+                            document.getElementById('fecha_emision').value = getCurrentDate();
+                            calcularTotal();
+                            document.getElementById('dias_info').innerHTML = '';
+                        }, 1000);
+                    }, 500);
+                } else {
+                    showAlert('❌ ' + result.message, 'error');
+                }
+            } catch (error) {
+                showAlert('❌ Error al generar la boleta: ' + error.message, 'error');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Calcular totales al cargar
+        calcularTotal();
+    </script>
+    
+    <style>
+        .autocomplete-lista {
+            display: none;
+            position: absolute;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            width: 100%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .autocomplete-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--light-bg);
+        }
+        
+        .autocomplete-item:hover {
+            background-color: var(--light-bg);
+        }
+        
+        .autocomplete-item strong {
+            color: var(--primary-color);
+        }
+        
+        .autocomplete-item small {
+            color: var(--text-light);
+        }
+    </style>
+</body>
+</html>
