@@ -398,10 +398,11 @@ def buscar_empleados():
         return jsonify({'success': False, 'message': str(e)}), 400
 
 if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
     print("=" * 60)
     print("🚀 BOLETAS-V1 - Sistema Web de Generación de Boletas")
     print("=" * 60)
-    print("📍 Servidor iniciado en: http://localhost:5000")
+    print(f"📍 Servidor iniciado en puerto: {port}")
     print("💡 Presiona CTRL+C para detener el servidor")
     print("=" * 60)
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=False, host='0.0.0.0', port=port)
