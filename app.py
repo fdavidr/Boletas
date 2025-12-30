@@ -10,11 +10,13 @@ from functools import wraps
 import os
 from datetime import datetime
 
-from config.empresa import EmpresaConfig
+# Importar base de datos
+from config.database import db, init_db
+from config.empresa_db import EmpresaConfig
 from models.boleta_mensual import BoletaMensual
 from models.boleta_aguinaldo import BoletaAguinaldo
 from models.boleta_liquidacion import BoletaLiquidacion
-from models.empleado import Empleado, EmpleadoManager
+from models.empleado_db import EmpleadoManager
 from generators.pdf_generator import PDFGenerator
 
 app = Flask(__name__)
@@ -31,6 +33,9 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
 os.makedirs('static/uploads', exist_ok=True)  # Para archivos estáticos locales
 os.makedirs('output', exist_ok=True)  # Para desarrollo local
+
+# Inicializar base de datos PostgreSQL
+init_db(app)
 
 # Configuración de empresa
 empresa_config = EmpresaConfig()
@@ -338,7 +343,7 @@ def download_pdf(filename):
 def get_empleados():
     """Obtiene todos los empleados"""
     try:
-        empleados = empleado_manager.obtener_empleados()
+        empleados = empleado_manager.obtener_todos()
         return jsonify({'success': True, 'empleados': empleados})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
