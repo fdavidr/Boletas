@@ -117,10 +117,15 @@
                     document.getElementById('nombre_empresa').textContent = data.nombre;
                 }
                 
-                if (data.logo_path) {
+                // Mostrar logo si existe
+                if (data.logo_exists && data.logo_url) {
                     const logoImg = document.getElementById('logo_empresa');
-                    logoImg.src = '/' + data.logo_path;
+                    logoImg.src = data.logo_url;
                     logoImg.style.display = 'block';
+                    logoImg.onerror = function() {
+                        console.log('Error cargando logo');
+                        this.style.display = 'none';
+                    };
                 }
             } catch (error) {
                 console.error('Error al cargar datos de empresa:', error);
