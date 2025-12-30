@@ -355,7 +355,7 @@ def agregar_empleado():
     try:
         data = request.json
         
-        empleado = Empleado(
+        empleado = empleado_manager.agregar_empleado(
             nombre_completo=data.get('nombre_completo', ''),
             ci=data.get('ci', ''),
             cargo=data.get('cargo', ''),
@@ -363,13 +363,17 @@ def agregar_empleado():
             sueldo=data.get('sueldo', 0)
         )
         
-        success, message = empleado_manager.agregar_empleado(empleado)
-        
-        return jsonify({
-            'success': success,
-            'message': message,
-            'empleado': empleado.to_dict() if success else None
-        })
+        if empleado:
+            return jsonify({
+                'success': True,
+                'message': 'Empleado agregado correctamente',
+                'empleado': empleado
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'El empleado con ese CI ya existe'
+            }), 400
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
 
@@ -378,7 +382,7 @@ def agregar_empleado():
 def get_empleado(id_empleado):
     """Obtiene un empleado por ID"""
     try:
-        empleado = empleado_manager.obtener_empleado_por_id(id_empleado)
+        empleado = empleado_manager.obtener_empleado(id_empleado)
         if empleado:
             return jsonify({'success': True, 'empleado': empleado})
         return jsonify({'success': False, 'message': 'Empleado no encontrado'}), 404
@@ -391,12 +395,26 @@ def actualizar_empleado(id_empleado):
     """Actualiza un empleado"""
     try:
         data = request.json
-        success, message = empleado_manager.actualizar_empleado(id_empleado, data)
+        empleado = empleado_manager.actualizar_empleado(
+            id_empleado,
+            nombre_completo=data.get('nombre_completo', ''),
+            ci=data.get('ci', ''),
+            cargo=data.get('cargo', ''),
+            fecha_ingreso=data.get('fecha_ingreso', ''),
+            sueldo=data.get('sueldo', 0)
+        )
         
-        return jsonify({
-            'success': success,
-            'message': message
-        })
+        if empleado:
+            return jsonify({
+                'success': True,
+                'message': 'Empleado actualizado correctamente',
+                'empleado': empleado
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Error al actualizar empleado o CI duplicado'
+            }), 400
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
 
@@ -405,12 +423,18 @@ def actualizar_empleado(id_empleado):
 def eliminar_empleado(id_empleado):
     """Elimina un empleado"""
     try:
-        success, message = empleado_manager.eliminar_empleado(id_empleado)
+        success = empleado_manager.eliminar_empleado(id_empleado)
         
-        return jsonify({
-            'success': success,
-            'message': message
-        })
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'Empleado eliminado correctamente'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Empleado no encontrado'
+            }), 404
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
 
