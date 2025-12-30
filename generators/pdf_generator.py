@@ -92,7 +92,7 @@ class PDFGenerator:
                 from PIL import Image as PILImage
                 img = PILImage.open(self.empresa_config.get_logo_path())
                 aspect_ratio = img.width / img.height
-                logo_height = 0.8 * inch
+                logo_height = 2.0 * inch  # Aumentado de 0.8 a 2.0 inches para mayor visibilidad
                 logo_width = logo_height * aspect_ratio
                 logo = Image(self.empresa_config.get_logo_path(), width=logo_width, height=logo_height)
             except:
@@ -336,7 +336,7 @@ class PDFGenerator:
                 from PIL import Image as PILImage
                 img = PILImage.open(self.empresa_config.get_logo_path())
                 aspect_ratio = img.width / img.height
-                logo_height = 0.8 * inch
+                logo_height = 2.0 * inch  # Aumentado de 0.8 a 2.0 inches para mayor visibilidad
                 logo_width = logo_height * aspect_ratio
                 logo = Image(self.empresa_config.get_logo_path(), width=logo_width, height=logo_height)
             except:
