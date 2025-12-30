@@ -60,13 +60,19 @@ class Empleado:
 class EmpleadoManager:
     """Gestor de empleados"""
     
-    def __init__(self, archivo='config/empleados.json'):
+    def __init__(self, archivo=None):
         """
         Inicializa el gestor
         
         Args:
             archivo: Ruta del archivo JSON para almacenar empleados
         """
+        # Usar carpeta persistente en Render, local en desarrollo
+        if archivo is None:
+            data_dir = os.environ.get('RENDER_DISK_PATH', 'data')
+            os.makedirs(data_dir, exist_ok=True)
+            archivo = os.path.join(data_dir, 'empleados.json')
+        
         self.archivo = archivo
         self._crear_directorio()
         self.empleados = self._cargar_empleados()

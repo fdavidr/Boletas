@@ -13,9 +13,13 @@ from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
 from datetime import datetime
 
 class PDFGenerator:
-    def __init__(self, empresa_config):
+    def __init__(self, empresa_config, output_dir=None):
         self.empresa_config = empresa_config
-        self.output_dir = "output"
+        # Usar carpeta persistente en Render, local en desarrollo
+        if output_dir is None:
+            data_dir = os.environ.get('RENDER_DISK_PATH', 'data')
+            output_dir = os.path.join(data_dir, 'output')
+        self.output_dir = output_dir
         os.makedirs(self.output_dir, exist_ok=True)
     
     def _add_header(self, elements, styles):

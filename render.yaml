@@ -7,3 +7,10 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
+      - key: RENDER_DISK_PATH
+        value: /opt/render/project/src/data
+    # Disco persistente para mantener datos entre deploys
+    disk:
+      name: boletas-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1

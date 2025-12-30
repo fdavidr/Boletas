@@ -8,7 +8,13 @@ import os
 from datetime import datetime
 
 class EmpresaConfig:
-    def __init__(self, config_file="config/settings.json"):
+    def __init__(self, config_file=None):
+        # Usar carpeta persistente en Render, local en desarrollo
+        if config_file is None:
+            data_dir = os.environ.get('RENDER_DISK_PATH', 'data')
+            os.makedirs(data_dir, exist_ok=True)
+            config_file = os.path.join(data_dir, 'settings.json')
+        
         self.config_file = config_file
         self.config = self.load_config()
     
@@ -22,6 +28,10 @@ class EmpresaConfig:
     
     def get_default_config(self):
         """Retorna configuración por defecto"""
+        # Usar carpeta persistente para logos
+        data_dir = os.environ.get('RENDER_DISK_PATH', 'data')
+        logo_path = os.path.join(data_dir, 'uploads', 'logo.png')
+        
         return {
             "empresa": {
                 "nombre": "Mi Empresa",
@@ -31,7 +41,7 @@ class EmpresaConfig:
                 "telefono": "591-2-1234567",
                 "nit": "12345678",
                 "actividad": "Servicios Generales",
-                "logo_path": "static/uploads/logo.png"
+                "logo_path": logo_path
             },
             "boletas": {
                 "ultimo_numero": 0,

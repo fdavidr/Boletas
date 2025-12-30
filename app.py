@@ -19,13 +19,18 @@ from generators.pdf_generator import PDFGenerator
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'boletas-v1-secret-key-2025'
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
+
+# Configuración de carpetas - usar disco persistente en Render
+DATA_DIR = os.environ.get('RENDER_DISK_PATH', 'data')
+app.config['UPLOAD_FOLDER'] = os.path.join(DATA_DIR, 'uploads')
+app.config['OUTPUT_FOLDER'] = os.path.join(DATA_DIR, 'output')
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max
 
 # Crear directorios necesarios
-os.makedirs('static/uploads', exist_ok=True)
-os.makedirs('output', exist_ok=True)
-os.makedirs('config', exist_ok=True)
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
+os.makedirs('static/uploads', exist_ok=True)  # Para archivos estáticos locales
+os.makedirs('output', exist_ok=True)  # Para desarrollo local
 
 # Configuración de empresa
 empresa_config = EmpresaConfig()
@@ -195,7 +200,7 @@ def generar_boleta_mensual():
         boleta.metodo_pago = data.get('metodo_pago', 'EFECTIVO')
         
         # Generar PDF
-        pdf_gen = PDFGenerator(empresa_config)
+        pdf_gen = PDFGenerator(empresa_config, app.config['OUTPUT_FOLDER'])
         filename = pdf_gen.generar_boleta_mensual(boleta)
         
         return jsonify({
@@ -233,7 +238,7 @@ def generar_boleta_aguinaldo():
         boleta.metodo_pago = data.get('metodo_pago', 'EFECTIVO')
         
         # Generar PDF
-        pdf_gen = PDFGenerator(empresa_config)
+        pdf_gen = PDFGenerator(empresa_config, app.config['OUTPUT_FOLDER'])
         filename = pdf_gen.generar_boleta_aguinaldo(boleta)
         
         return jsonify({
@@ -283,7 +288,7 @@ def generar_boleta_liquidacion():
         boleta.metodo_pago = data.get('metodo_pago', 'EFECTIVO')
         
         # Generar PDF
-        pdf_gen = PDFGenerator(empresa_config)
+        pdf_gen = PDFGenerator(empresa_config, app.config['OUTPUT_FOLDER'])
         filename = pdf_gen.generar_boleta_liquidacion(boleta)
         
         return jsonify({
@@ -300,7 +305,7 @@ def generar_boleta_liquidacion():
 def download_pdf(filename):
     """Descarga un PDF generado"""
     try:
-        filepath = os.path.join('output', filename)
+        filepath = os.path.join(app.config['OUTPUT_FOLDER'], filename)
         if os.path.exists(filepath):
             return send_file(filepath, as_attachment=True)
         else:
