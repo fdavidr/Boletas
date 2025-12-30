@@ -73,6 +73,12 @@
                 <div class="form-section">
                     <h3 class="section-title">LOGO DE LA EMPRESA</h3>
                     
+                    <!-- Vista previa del logo -->
+                    <div id="logoPreviewContainer" style="display: none; margin-bottom: 20px; text-align: center;">
+                        <p style="color: #666; margin-bottom: 10px;">Logo Actual:</p>
+                        <img id="logoPreview" src="" alt="Logo" style="max-width: 200px; max-height: 200px; border: 2px solid #ddd; border-radius: 8px; padding: 10px; background: white;">
+                    </div>
+                    
                     <div class="form-group">
                         <label for="logo">Seleccionar Logo (PNG, JPG - Max 5MB)</label>
                         <div class="file-input-wrapper">
@@ -118,6 +124,12 @@
                 document.getElementById('actividad').value = data.actividad || '';
                 document.getElementById('telefono').value = data.telefono || '';
                 document.getElementById('direccion').value = data.direccion || '';
+                
+                // Mostrar logo si existe
+                if (data.logo_exists && data.logo_url) {
+                    document.getElementById('logoPreview').src = data.logo_url;
+                    document.getElementById('logoPreviewContainer').style.display = 'block';
+                }
             } catch (error) {
                 console.error('Error al cargar configuración:', error);
             }

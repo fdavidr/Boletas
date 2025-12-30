@@ -123,13 +123,31 @@ def empleados():
     """Página de gestión de empleados"""
     return render_template('empleados.html')
 
+# Ruta para servir archivos del disco persistente (logos, etc)
+@app.route('/uploads/<path:filename>')
+def serve_upload(filename):
+    """Sirve archivos subidos desde el disco persistente"""
+    return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
 # API Endpoints
 
 @app.route('/api/empresa', methods=['GET'])
 @login_required
 def get_empresa():
     """Obtiene los datos de la empresa"""
-    return jsonify(empresa_config.get_empresa_data())
+    empresa_data = empresa_config.get_empresa_data()
+    
+    # Convertir ruta del logo a URL accesible
+    if empresa_data.get('logo_path'):
+        logo_filename = os.path.basename(empresa_data['logo_path'])
+        empresa_data['logo_url'] = f'/uploads/{logo_filename}'
+        # Verificar si el logo existe
+        empresa_data['logo_exists'] = empresa_config.logo_exists()
+    else:
+        empresa_data['logo_url'] = None
+        empresa_data['logo_exists'] = False
+    
+    return jsonify(empresa_data)
 
 @app.route('/api/empresa', methods=['POST'])
 @login_required
