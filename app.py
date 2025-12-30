@@ -132,7 +132,14 @@ def empleados():
 @app.route('/uploads/<path:filename>')
 def serve_upload(filename):
     """Sirve archivos subidos desde el disco persistente"""
-    return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    try:
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        if os.path.exists(filepath):
+            return send_file(filepath)
+        else:
+            return jsonify({'error': 'Archivo no encontrado'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # API Endpoints
 
@@ -142,12 +149,13 @@ def get_empresa():
     """Obtiene los datos de la empresa"""
     empresa_data = empresa_config.get_empresa_data()
     
-    # Convertir ruta del logo a URL accesible
-    if empresa_data.get('logo_path'):
+    # Convertir ruta del logo a URL accesible solo si el archivo existe
+    logo_exists = empresa_config.logo_exists()
+    empresa_data['logo_exists'] = logo_exists
+    
+    if logo_exists and empresa_data.get('logo_path'):
         logo_filename = os.path.basename(empresa_data['logo_path'])
         empresa_data['logo_url'] = f'/uploads/{logo_filename}'
-        # Verificar si el logo existe
-        empresa_data['logo_exists'] = empresa_config.logo_exists()
     else:
         empresa_data['logo_url'] = None
         empresa_data['logo_exists'] = False
