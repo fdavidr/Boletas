@@ -153,8 +153,8 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="reposiciones">Reposiciones (Bs.)</label>
-                            <input type="number" id="reposiciones" name="reposiciones" class="form-control" 
+                            <label for="anticipos">Anticipos (Bs.)</label>
+                            <input type="number" id="anticipos" name="anticipos" class="form-control" 
                                    step="0.01" value="0.00" oninput="calcularTotales()">
                         </div>
                         
@@ -313,6 +313,97 @@
             this.value = this.value.replace(/[^0-9]/g, '').substring(0, 4);
         });
         
+        // Mapeo de meses españoles a números
+        const mesesMap = {
+            'Enero': 1, 'Febrero': 2, 'Marzo': 3, 'Abril': 4,
+            'Mayo': 5, 'Junio': 6, 'Julio': 7, 'Agosto': 8,
+            'Septiembre': 9, 'Octubre': 10, 'Noviembre': 11, 'Diciembre': 12
+        };
+        
+        // Deshabilitar rango de fechas al inicio
+        const rangoDisplay = document.getElementById('rango_fechas_display');
+        rangoDisplay.disabled = true;
+        rangoDisplay.placeholder = 'Primero seleccione mes y año';
+        rangoDisplay.style.backgroundColor = '#f5f5f5';
+        
+        // Función para actualizar estado del rango de fechas
+        function actualizarEstadoRango() {
+            const mesPago = document.getElementById('mes_pago').value;
+            const anio = document.getElementById('anio').value;
+            
+            if (mesPago && anio && anio.length === 4) {
+                // Habilitar campo
+                rangoDisplay.disabled = false;
+                rangoDisplay.placeholder = 'Opcional: dd/mm/aaaa-dd/mm/aaaa (doble clic para limpiar)';
+                rangoDisplay.style.backgroundColor = 'white';
+                
+                // Configurar límites del calendario
+                const mesNumero = mesesMap[mesPago];
+                const anioNum = parseInt(anio);
+                
+                // Calcular primer y último día del mes
+                const primerDia = new Date(anioNum, mesNumero - 1, 1);
+                const ultimoDia = new Date(anioNum, mesNumero, 0);
+                
+                // Formatear fechas para input type="date" (yyyy-mm-dd)
+                const formatoISO = (fecha) => {
+                    const year = fecha.getFullYear();
+                    const month = String(fecha.getMonth() + 1).padStart(2, '0');
+                    const day = String(fecha.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                };
+                
+                const minFecha = formatoISO(primerDia);
+                const maxFecha = formatoISO(ultimoDia);
+                
+                // Aplicar límites a los inputs del calendario
+                document.getElementById('fecha_inicio_cal').min = minFecha;
+                document.getElementById('fecha_inicio_cal').max = maxFecha;
+                document.getElementById('fecha_fin_cal').min = minFecha;
+                document.getElementById('fecha_fin_cal').max = maxFecha;
+                
+                // Limpiar valores si están fuera del rango
+                const fechaInicio = document.getElementById('fecha_inicio_cal').value;
+                const fechaFin = document.getElementById('fecha_fin_cal').value;
+                
+                if (fechaInicio && (fechaInicio < minFecha || fechaInicio > maxFecha)) {
+                    document.getElementById('fecha_inicio_cal').value = '';
+                    document.getElementById('rango_fechas_display').value = '';
+                    document.getElementById('rango_fechas').value = '';
+                }
+                
+                if (fechaFin && (fechaFin < minFecha || fechaFin > maxFecha)) {
+                    document.getElementById('fecha_fin_cal').value = '';
+                    document.getElementById('rango_fechas_display').value = '';
+                    document.getElementById('rango_fechas').value = '';
+                }
+            } else {
+                // Deshabilitar campo
+                rangoDisplay.disabled = true;
+                rangoDisplay.placeholder = 'Primero seleccione mes y año';
+                rangoDisplay.style.backgroundColor = '#f5f5f5';
+                
+                // Limpiar valores
+                document.getElementById('rango_fechas_display').value = '';
+                document.getElementById('rango_fechas').value = '';
+                document.getElementById('fecha_inicio_cal').value = '';
+                document.getElementById('fecha_fin_cal').value = '';
+                
+                // Remover límites
+                document.getElementById('fecha_inicio_cal').removeAttribute('min');
+                document.getElementById('fecha_inicio_cal').removeAttribute('max');
+                document.getElementById('fecha_fin_cal').removeAttribute('min');
+                document.getElementById('fecha_fin_cal').removeAttribute('max');
+            }
+        }
+        
+        // Agregar eventos para actualizar estado del rango
+        document.getElementById('mes_pago').addEventListener('change', actualizarEstadoRango);
+        document.getElementById('anio').addEventListener('input', actualizarEstadoRango);
+        
+        // Llamar al inicio para establecer estado inicial
+        actualizarEstadoRango();
+        
         // Funciones del calendario de rango
         function mostrarCalendarioRango() {
             document.getElementById('calendario_rango').style.display = 'block';
@@ -378,11 +469,11 @@
             
             const faltas = parseFloat(document.getElementById('faltas').value) || 0;
             const retrasos = parseFloat(document.getElementById('retrasos').value) || 0;
-            const reposiciones = parseFloat(document.getElementById('reposiciones').value) || 0;
+            const anticipos = parseFloat(document.getElementById('anticipos').value) || 0;
             const otrosEgresos = parseFloat(document.getElementById('otros_egresos').value) || 0;
             
             const totalIngresos = haberBasico + horasExtra + bonoAntiguedad + otrosIngresos;
-            const totalEgresos = faltas + retrasos + reposiciones + otrosEgresos;
+            const totalEgresos = faltas + retrasos + anticipos + otrosEgresos;
             const liquidoPagable = totalIngresos - totalEgresos;
             
             document.getElementById('total_ingresos').textContent = formatCurrency(totalIngresos) + ' Bs.';

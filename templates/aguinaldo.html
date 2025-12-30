@@ -244,7 +244,7 @@
             const fin = new Date(fechaFin);
             
             // Calcular días
-            const dias = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24));
+            const dias = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
             const meses = (dias / 30).toFixed(1);
             
             const infoDiv = document.getElementById('dias_info');
@@ -255,13 +255,89 @@
                 infoDiv.innerHTML = `❌ Período inválido: ${dias} días (mínimo 90 días requeridos)`;
                 infoDiv.style.color = 'var(--danger-color)';
             }
+            
+            // Recalcular total con el nuevo período
+            calcularTotal();
         }
 
-        // Calcular total
+        // Calcular meses completos y días adicionales
+        function calcularMesesCompletos(fechaInicio, fechaFin) {
+            if (!fechaInicio || !fechaFin) return { meses: 0, dias: 0 };
+            
+            const inicio = new Date(fechaInicio);
+            const fin = new Date(fechaFin);
+            
+            // Calcular diferencia de años y meses
+            const aniosDiff = fin.getFullYear() - inicio.getFullYear();
+            const mesesDiff = fin.getMonth() - inicio.getMonth();
+            const totalMeses = aniosDiff * 12 + mesesDiff;
+            
+            let mesesCompletos = 0;
+            let diasAdicionales = 0;
+            
+            // Si inicio es día 1
+            if (inicio.getDate() === 1) {
+                // Último día del mes de fin
+                const ultimoDiaMesFin = new Date(fin.getFullYear(), fin.getMonth() + 1, 0).getDate();
+                
+                if (fin.getDate() === ultimoDiaMesFin) {
+                    // Todos los meses son completos
+                    mesesCompletos = totalMeses + 1;
+                } else {
+                    // Último mes es parcial
+                    mesesCompletos = totalMeses;
+                    diasAdicionales = fin.getDate();
+                }
+            } else {
+                // Mes inicial es parcial
+                const ultimoDiaMesInicio = new Date(inicio.getFullYear(), inicio.getMonth() + 1, 0).getDate();
+                const diasMesInicial = ultimoDiaMesInicio - inicio.getDate() + 1;
+                
+                if (totalMeses > 0) {
+                    const ultimoDiaMesFin = new Date(fin.getFullYear(), fin.getMonth() + 1, 0).getDate();
+                    
+                    if (fin.getDate() === ultimoDiaMesFin) {
+                        // Último mes completo
+                        mesesCompletos = totalMeses;
+                        diasAdicionales = diasMesInicial;
+                    } else {
+                        // Último mes parcial
+                        mesesCompletos = totalMeses - 1 > 0 ? totalMeses - 1 : 0;
+                        diasAdicionales = diasMesInicial + fin.getDate();
+                    }
+                } else {
+                    // Todo en el mismo mes
+                    diasAdicionales = (fin - inicio) / (1000 * 60 * 60 * 24) + 1;
+                }
+            }
+            
+            return { meses: mesesCompletos, dias: diasAdicionales };
+        }
+
+        // Calcular total con aguinaldo proporcional
         function calcularTotal() {
             const promedio = parseFloat(document.getElementById('promedio_ultimos_3_pagos').value) || 0;
             const otros = parseFloat(document.getElementById('otros').value) || 0;
-            const total = promedio + otros;
+            const fechaInicio = document.getElementById('fecha_inicio').value;
+            const fechaFin = document.getElementById('fecha_fin').value;
+            
+            let aguinaldoProporcional = 0;
+            
+            if (promedio > 0 && fechaInicio && fechaFin) {
+                const { meses, dias } = calcularMesesCompletos(fechaInicio, fechaFin);
+                
+                // Caso 1: 12 meses completos
+                if (meses === 12 && dias === 0) {
+                    aguinaldoProporcional = promedio;
+                } else {
+                    // Caso 2 y 3: Proporcional
+                    const aguinaldoMeses = (promedio / 12) * meses;
+                    const aguinaldoDias = (promedio / 360) * dias;
+                    aguinaldoProporcional = aguinaldoMeses + aguinaldoDias;
+                }
+            }
+            
+            const total = aguinaldoProporcional + otros;
             
             document.getElementById('liquido_pagable').textContent = formatCurrency(total) + ' Bs.';
         }

@@ -185,7 +185,7 @@ def generar_boleta_mensual():
         # Egresos
         boleta.faltas = float(data.get('faltas', 0))
         boleta.retrasos = float(data.get('retrasos', 0))
-        boleta.reposiciones = float(data.get('reposiciones', 0))
+        boleta.reposiciones = float(data.get('anticipos', data.get('reposiciones', 0)))
         boleta.otros_egresos = float(data.get('otros_egresos', 0))
         
         # Fecha, número y método de pago

@@ -123,27 +123,26 @@ class PDFGenerator:
         elements.append(Spacer(1, 0.08*inch))
         
         # Datos del empleado - ultra compacto
+        fecha_str = boleta.fecha_emision.strftime("%d/%m/%Y")
+        metodo_pago = getattr(boleta, 'metodo_pago', 'EFECTIVO')
         data_empleado = [
             ['Nombre:', boleta.nombre_completo, 'C.I.:', boleta.ci],
-            ['Cargo:', boleta.cargo, 'Período:', f"{boleta.mes_pago} {boleta.anio}"],
+            ['Cargo:', boleta.cargo, 'Fecha:', fecha_str],
+            ['Período:', f"{boleta.mes_pago} {boleta.anio}", 'Método Pago:', metodo_pago],
         ]
         
         if boleta.rango_fechas:
-            data_empleado.append(['Rango:', boleta.rango_fechas, 'Fecha:', boleta.fecha_emision.strftime("%d/%m/%Y")])
-        else:
-            data_empleado.append(['', '', 'Fecha:', boleta.fecha_emision.strftime("%d/%m/%Y")])
+            data_empleado.append(['Rango:', boleta.rango_fechas, '', ''])
         
-        # Añadir método de pago
-        data_empleado.append(['Método Pago:', getattr(boleta, 'metodo_pago', 'EFECTIVO'), '', ''])
-        
-        tabla_empleado = Table(data_empleado, colWidths=[0.9*inch, 2.3*inch, 0.7*inch, 2.6*inch])
+        tabla_empleado = Table(data_empleado, colWidths=[1.0*inch, 2.53*inch, 1.15*inch, 1.82*inch])
         tabla_empleado.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#ECF0F1')),
+            ('BACKGROUND', (0, 0), (-1, -1), colors.white),
             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
             ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
             ('FONTNAME', (2, 0), (2, -1), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, -1), 8),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('GRID', (0, 0), (-1, -1), 0.8, colors.black),
+            ('BOX', (0, 0), (-1, -1), 1.2, colors.black),
             ('TOPPADDING', (0, 0), (-1, -1), 2),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
         ]))
@@ -165,14 +164,13 @@ class PDFGenerator:
             ['EGRESOS', 'Bs.'],
             ['Faltas', f"{boleta.faltas:.2f}"],
             ['Retrasos', f"{boleta.retrasos:.2f}"],
-            ['Reposiciones', f"{boleta.reposiciones:.2f}"],
+            ['Anticipos', f"{boleta.reposiciones:.2f}"],
             ['Otros Egresos', f"{boleta.otros_egresos:.2f}"],
             ['TOTAL EGRESOS', f"{boleta.calcular_total_egresos():.2f}"],
         ]
         
         tabla_ingresos = Table(data_ingresos, colWidths=[2.166*inch, 1.084*inch])
         tabla_ingresos.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.Color(0.153, 0.682, 0.376, alpha=0.5)),  # Verde con opacidad 0.5
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
             ('ALIGN', (0, 0), (0, -1), 'LEFT'),
             ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
@@ -181,18 +179,16 @@ class PDFGenerator:
             ('FONTSIZE', (0, 1), (-1, -1), 7),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 4),
             ('TOPPADDING', (0, 0), (-1, 0), 4),
-            ('BACKGROUND', (0, 1), (-1, -2), colors.Color(0.565, 0.933, 0.565, alpha=0.5)),
-            ('BACKGROUND', (0, -1), (-1, -1), colors.Color(0.118, 0.518, 0.286, alpha=0.5)),
             ('TEXTCOLOR', (0, -1), (-1, -1), colors.black),
             ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
             ('TOPPADDING', (0, 1), (-1, -1), 1.5),
             ('BOTTOMPADDING', (0, 1), (-1, -1), 1.5),
+            ('BOX', (0, 0), (-1, -1), 1.2, colors.HexColor('#2ECC71')),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#2ECC71')),
         ]))
         
         tabla_egresos = Table(data_egresos, colWidths=[2.166*inch, 1.084*inch])
         tabla_egresos.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.Color(0.906, 0.298, 0.235, alpha=0.5)),  # Rojo con opacidad 0.5
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
             ('ALIGN', (0, 0), (0, -1), 'LEFT'),
             ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
@@ -201,13 +197,12 @@ class PDFGenerator:
             ('FONTSIZE', (0, 1), (-1, -1), 7),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 4),
             ('TOPPADDING', (0, 0), (-1, 0), 4),
-            ('BACKGROUND', (0, 1), (-1, -2), colors.Color(0.941, 0.502, 0.502, alpha=0.5)),
-            ('BACKGROUND', (0, -1), (-1, -1), colors.Color(0.753, 0.224, 0.169, alpha=0.5)),
             ('TEXTCOLOR', (0, -1), (-1, -1), colors.black),
             ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
             ('TOPPADDING', (0, 1), (-1, -1), 1.5),
             ('BOTTOMPADDING', (0, 1), (-1, -1), 1.5),
+            ('BOX', (0, 0), (-1, -1), 1.2, colors.HexColor('#E74C3C')),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#E74C3C')),
         ]))
         
         # Combinar ambas tablas en una sola tabla sin separación
@@ -218,7 +213,6 @@ class PDFGenerator:
         tabla_combinada = Table(data_combinada, colWidths=[2.166*inch, 1.084*inch, 2.166*inch, 1.084*inch])
         tabla_combinada.setStyle(TableStyle([
             # Estilos para columnas de INGRESOS (0, 1)
-            ('BACKGROUND', (0, 0), (1, 0), colors.Color(0.153, 0.682, 0.376, alpha=0.5)),
             ('TEXTCOLOR', (0, 0), (1, 0), colors.black),
             ('ALIGN', (0, 0), (0, -1), 'LEFT'),
             ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
@@ -227,14 +221,11 @@ class PDFGenerator:
             ('FONTSIZE', (0, 1), (1, -1), 7),
             ('BOTTOMPADDING', (0, 0), (1, 0), 4),
             ('TOPPADDING', (0, 0), (1, 0), 4),
-            ('BACKGROUND', (0, 1), (1, -2), colors.Color(0.565, 0.933, 0.565, alpha=0.5)),
-            ('BACKGROUND', (0, -1), (1, -1), colors.Color(0.118, 0.518, 0.286, alpha=0.5)),
             ('TEXTCOLOR', (0, -1), (1, -1), colors.black),
             ('FONTNAME', (0, -1), (1, -1), 'Helvetica-Bold'),
             ('TOPPADDING', (0, 1), (1, -1), 1.5),
             ('BOTTOMPADDING', (0, 1), (1, -1), 1.5),
             # Estilos para columnas de EGRESOS (2, 3)
-            ('BACKGROUND', (2, 0), (3, 0), colors.Color(0.906, 0.298, 0.235, alpha=0.5)),
             ('TEXTCOLOR', (2, 0), (3, 0), colors.black),
             ('ALIGN', (2, 0), (2, -1), 'LEFT'),
             ('ALIGN', (3, 0), (3, -1), 'RIGHT'),
@@ -243,14 +234,15 @@ class PDFGenerator:
             ('FONTSIZE', (2, 1), (3, -1), 7),
             ('BOTTOMPADDING', (2, 0), (3, 0), 4),
             ('TOPPADDING', (2, 0), (3, 0), 4),
-            ('BACKGROUND', (2, 1), (3, -2), colors.Color(0.941, 0.502, 0.502, alpha=0.5)),
-            ('BACKGROUND', (2, -1), (3, -1), colors.Color(0.753, 0.224, 0.169, alpha=0.5)),
             ('TEXTCOLOR', (2, -1), (3, -1), colors.black),
             ('FONTNAME', (2, -1), (3, -1), 'Helvetica-Bold'),
             ('TOPPADDING', (2, 1), (3, -1), 1.5),
             ('BOTTOMPADDING', (2, 1), (3, -1), 1.5),
-            # Bordes
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+            # Bordes diferenciados
+            ('BOX', (0, 0), (1, -1), 1.2, colors.HexColor('#2ECC71')),
+            ('GRID', (0, 0), (1, -1), 0.5, colors.HexColor('#2ECC71')),
+            ('BOX', (2, 0), (3, -1), 1.2, colors.HexColor('#E74C3C')),
+            ('GRID', (2, 0), (3, -1), 0.5, colors.HexColor('#E74C3C')),
         ]))
         
         elements.append(tabla_combinada)
@@ -263,7 +255,6 @@ class PDFGenerator:
         
         tabla_liquido = Table(data_liquido, colWidths=[4.5*inch, 2*inch])
         tabla_liquido.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, -1), colors.Color(0.161, 0.502, 0.725, alpha=0.5)),  # Azul con opacidad 0.5
             ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
             ('ALIGN', (0, 0), (0, -1), 'LEFT'),
             ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
@@ -293,7 +284,9 @@ class PDFGenerator:
             ('FONTSIZE', (0, 1), (-1, 1), 7),
             ('FONTSIZE', (0, 2), (-1, 2), 6),
             ('TOPPADDING', (0, 0), (-1, 0), 8),
-            ('TOPPADDING', (0, 2), (-1, 2), 1),
+            ('TOPPADDING', (0, 1), (-1, 1), 2),
+            ('TOPPADDING', (0, 2), (-1, 2), 0),
+            ('BOTTOMPADDING', (0, 1), (-1, 1), 1),
             ('LEFTPADDING', (0, 0), (-1, -1), 10),
             ('RIGHTPADDING', (0, 0), (-1, -1), 10),
         ]))
@@ -305,120 +298,152 @@ class PDFGenerator:
         return filename
     
     def generar_boleta_aguinaldo(self, boleta):
-        """Genera PDF para boleta de aguinaldo"""
+        """Genera PDF para boleta de aguinaldo - Diseño compacto mitad de página"""
         filename = os.path.join(self.output_dir, f"{boleta.numero_boleta}_Aguinaldo_{boleta.nombre_completo.replace(' ', '_')}.pdf")
-        doc = SimpleDocTemplate(filename, pagesize=letter)
+        doc = SimpleDocTemplate(filename, pagesize=letter, topMargin=0.3*inch, bottomMargin=0.3*inch, leftMargin=0.5*inch, rightMargin=0.5*inch)
         elements = []
         styles = getSampleStyleSheet()
         
-        # Estilo personalizado para título
+        # Estilo para título centrado
         title_style = ParagraphStyle(
-            'CustomTitle',
-            parent=styles['Heading1'],
-            fontSize=16,
+            'TitleStyle',
+            parent=styles['Normal'],
+            fontSize=14,
             textColor=colors.HexColor('#2C3E50'),
-            spaceAfter=30,
-            alignment=TA_CENTER
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold'
         )
         
-        # Header
-        self._add_header(elements, styles)
+        # Estilo para datos de empresa
+        empresa_style = ParagraphStyle(
+            'EmpresaStyle',
+            parent=styles['Normal'],
+            fontSize=7,
+            alignment=TA_RIGHT,
+            leading=9
+        )
         
-        # Título
-        elements.append(Paragraph(f"<b>BOLETA DE PAGO DE AGUINALDO</b>", title_style))
-        elements.append(Paragraph(f"<b>No. {boleta.numero_boleta}</b>", styles['Heading2']))
-        elements.append(Spacer(1, 0.2*inch))
+        # Header horizontal: Logo - Título - Datos Empresa
+        empresa = self.empresa_config.get_empresa_data()
         
-        # Datos del empleado
+        # Logo (columna izquierda)
+        if self.empresa_config.logo_exists():
+            try:
+                from PIL import Image as PILImage
+                img = PILImage.open(self.empresa_config.get_logo_path())
+                aspect_ratio = img.width / img.height
+                logo_height = 0.8 * inch
+                logo_width = logo_height * aspect_ratio
+                logo = Image(self.empresa_config.get_logo_path(), width=logo_width, height=logo_height)
+            except:
+                logo = ''
+        else:
+            logo = ''
+        
+        # Título (columna central)
+        titulo = Paragraph(f"<b>BOLETA DE AGUINALDO</b><br/><font size=9>No. {boleta.numero_boleta}</font>", title_style)
+        
+        # Datos empresa (columna derecha)
+        datos_empresa = Paragraph(
+            f"<b>{empresa['nombre']}</b><br/>"
+            f"{empresa.get('eslogan', '')}<br/>"
+            f"NIT: {empresa.get('nit', 'N/A')}<br/>"
+            f"Tel: {empresa.get('telefono', 'N/A')}<br/>"
+            f"{empresa.get('direccion', 'N/A')}",
+            empresa_style
+        )
+        
+        # Tabla de header con 3 columnas
+        header_data = [[logo, titulo, datos_empresa]]
+        header_table = Table(header_data, colWidths=[2.5*inch, 3*inch, 2.5*inch])
+        header_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+            ('ALIGN', (1, 0), (1, 0), 'CENTER'),
+            ('ALIGN', (2, 0), (2, 0), 'RIGHT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        
+        elements.append(header_table)
+        elements.append(Spacer(1, 0.08*inch))
+        
+        # Datos del empleado - ultra compacto
+        fecha_str = boleta.fecha_emision.strftime("%d/%m/%Y")
+        metodo_pago = getattr(boleta, 'metodo_pago', 'EFECTIVO')
+        meses_completos, dias_adicionales = boleta.calcular_meses_completos_y_dias()
+        
         data_empleado = [
-            ['DATOS DEL EMPLEADO', ''],
-            ['Nombre Completo:', boleta.nombre_completo],
-            ['C.I.:', boleta.ci],
-            ['Cargo:', boleta.cargo],
-            ['Año:', str(boleta.anio)],
-            ['Fecha de Ingreso:', boleta.fecha_ingreso],
-            ['Período Trabajado:', f"{boleta.fecha_inicio} al {boleta.fecha_fin}"],
-            ['Días Trabajados:', f"{boleta.calcular_dias_trabajados()} días ({boleta.calcular_meses_trabajados()} meses)"],
-            ['Fecha de Emisión:', boleta.fecha_emision.strftime("%d/%m/%Y")],
-            ['Método de Pago:', getattr(boleta, 'metodo_pago', 'EFECTIVO')],
+            ['Nombre:', boleta.nombre_completo, 'C.I.:', boleta.ci],
+            ['Cargo:', boleta.cargo, 'Año:', str(boleta.anio)],
+            ['Período:', f"{boleta.fecha_inicio} al {boleta.fecha_fin}", 'Fecha:', fecha_str],
+            ['Tiempo:', f"{meses_completos} mes(es), {dias_adicionales} día(s)", 'Método Pago:', metodo_pago],
         ]
         
-        tabla_empleado = Table(data_empleado, colWidths=[2.5*inch, 4*inch])
+        tabla_empleado = Table(data_empleado, colWidths=[1.0*inch, 2.53*inch, 1.15*inch, 1.82*inch])
         tabla_empleado.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#34495E')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('BACKGROUND', (0, 0), (-1, -1), colors.white),
             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 12),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTNAME', (2, 0), (2, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 0.8, colors.black),
+            ('BOX', (0, 0), (-1, -1), 1.2, colors.black),
+            ('TOPPADDING', (0, 0), (-1, -1), 2),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
         ]))
         
         elements.append(tabla_empleado)
-        elements.append(Spacer(1, 0.3*inch))
+        elements.append(Spacer(1, 0.12*inch))
         
-        # Cálculo del aguinaldo
+        # Cálculo del aguinaldo con desglose - compacto
+        aguinaldo_base = boleta.calcular_aguinaldo_proporcional()
+        
         data_calculo = [
-            ['CONCEPTO', 'MONTO (Bs.)'],
-            ['Promedio últimos 3 pagos', f"{boleta.promedio_ultimos_3_pagos:.2f}"],
-            ['Otros conceptos', f"{boleta.otros:.2f}"],
-            ['TOTAL AGUINALDO', f"{boleta.calcular_liquido_pagable():.2f}"],
+            ['CÁLCULO DEL AGUINALDO', 'Bs.'],
+            ['Sueldo Promedio', f"{boleta.promedio_ultimos_3_pagos:.2f}"],
         ]
         
-        tabla_calculo = Table(data_calculo, colWidths=[4.5*inch, 2*inch])
+        # Agregar desglose según el caso
+        if meses_completos == 12 and dias_adicionales == 0:
+            data_calculo.append(['Aguinaldo (12 meses completos)', f"{aguinaldo_base:.2f}"])
+        elif meses_completos > 0 or dias_adicionales > 0:
+            if meses_completos > 0:
+                monto_meses = (boleta.promedio_ultimos_3_pagos / 12) * meses_completos
+                data_calculo.append([f'{meses_completos} mes(es): (÷12) × {meses_completos}', f"{monto_meses:.2f}"])
+            if dias_adicionales > 0:
+                monto_dias = (boleta.promedio_ultimos_3_pagos / 360) * dias_adicionales
+                data_calculo.append([f'{dias_adicionales} día(s): (÷360) × {dias_adicionales}', f"{monto_dias:.2f}"])
+            data_calculo.append(['Subtotal Aguinaldo', f"{aguinaldo_base:.2f}"])
+        
+        if boleta.otros > 0:
+            data_calculo.append(['Otros conceptos', f"{boleta.otros:.2f}"])
+        
+        data_calculo.append(['TOTAL AGUINALDO', f"{boleta.calcular_liquido_pagable():.2f}"])
+        
+        tabla_calculo = Table(data_calculo, colWidths=[5.0*inch, 1.5*inch])
         tabla_calculo.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.Color(0.153, 0.682, 0.376, alpha=0.5)),  # Verde con opacidad 0.5
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
             ('ALIGN', (0, 0), (0, -1), 'LEFT'),
             ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 11),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -2), colors.Color(0.565, 0.933, 0.565, alpha=0.5)),
-            ('BACKGROUND', (0, -1), (-1, -1), colors.Color(0.118, 0.518, 0.286, alpha=0.5)),
+            ('FONTSIZE', (0, 0), (-1, 0), 8),
+            ('FONTSIZE', (0, 1), (-1, -2), 7),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 4),
+            ('TOPPADDING', (0, 0), (-1, 0), 4),
             ('TEXTCOLOR', (0, -1), (-1, -1), colors.black),
             ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, -1), (-1, -1), 13),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('FONTSIZE', (0, -1), (-1, -1), 9),
+            ('TOPPADDING', (0, 1), (-1, -1), 1.5),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 1.5),
+            ('BOX', (0, 0), (-1, -1), 1.2, colors.HexColor('#F39C12')),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#F39C12')),
         ]))
         
         elements.append(tabla_calculo)
-        elements.append(Spacer(1, 0.3*inch))
+        elements.append(Spacer(1, 0.12*inch))
         
-        # Líquido pagable
-        data_liquido = [
-            ['LÍQUIDO PAGABLE', f"{boleta.calcular_liquido_pagable():.2f} Bs."],
-        ]
-        
-        tabla_liquido = Table(data_liquido, colWidths=[4.5*inch, 2*inch])
-        tabla_liquido.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, -1), colors.Color(0.161, 0.502, 0.725, alpha=0.5)),  # Azul con opacidad 0.5
-            ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
-            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
-            ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 14),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
-            ('TOPPADDING', (0, 0), (-1, -1), 12),
-            ('GRID', (0, 0), (-1, -1), 2, colors.black),
-        ]))
-        
-        elements.append(tabla_liquido)
-        elements.append(Spacer(1, 0.37*inch))
-        
-        # Nota legal
-        nota = """
-        <i>Nota: El aguinaldo corresponde al pago del doceavo del total ganado durante el año, 
-        conforme a la legislación laboral vigente.</i>
-        """
-        elements.append(Paragraph(nota, styles['Normal']))
-        elements.append(Spacer(1, 0.3*inch))
-        
-        # Firmas
+        # Firmas - compacto
         data_firmas = [
-            ['_____________________', '', '_____________________'],
+            ['____________________________', '', '____________________________'],
             ['Firma Empleador', '', 'Firma Empleado'],
             ['Entregue Conforme', '', 'Recibí Conforme'],
         ]
@@ -429,16 +454,27 @@ class PDFGenerator:
             ('ALIGN', (2, 0), (2, -1), 'CENTER'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 2), (-1, 2), 9),
-            ('TOPPADDING', (0, 0), (-1, 0), 20),
-            ('TOPPADDING', (0, 2), (-1, 2), 1),
+            ('FONTSIZE', (0, 1), (-1, 1), 7),
+            ('FONTSIZE', (0, 2), (-1, 2), 6),
+            ('TOPPADDING', (0, 0), (-1, 0), 8),
+            ('TOPPADDING', (0, 1), (-1, 1), 2),
+            ('TOPPADDING', (0, 2), (-1, 2), 0),
+            ('BOTTOMPADDING', (0, 1), (-1, 1), 1),
             ('LEFTPADDING', (0, 0), (-1, -1), 10),
             ('RIGHTPADDING', (0, 0), (-1, -1), 10),
         ]))
         
         elements.append(tabla_firmas)
         
-        # Construir PDF
+        # Construir PDF con márgenes compactos
+        doc = SimpleDocTemplate(
+            filename, 
+            pagesize=letter,
+            topMargin=0.3*inch,
+            bottomMargin=0.3*inch,
+            leftMargin=0.5*inch,
+            rightMargin=0.5*inch
+        )
         doc.build(elements)
         return filename
     
@@ -585,8 +621,8 @@ class PDFGenerator:
         
         tabla_liquido = Table(data_liquido, colWidths=[4.5*inch, 2*inch])
         tabla_liquido.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, -1), colors.Color(0.161, 0.502, 0.725, alpha=0.5)),  # Azul con opacidad 0.5
-            ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#F25838')),  # Naranja/rojo
+            ('TEXTCOLOR', (0, 0), (-1, -1), colors.white),
             ('ALIGN', (0, 0), (0, -1), 'LEFT'),
             ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
             ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
