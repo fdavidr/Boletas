@@ -338,7 +338,7 @@ class PDFGenerator:
             'TitleStyle',
             parent=styles['Normal'],
             fontSize=14,
-            textColor=colors.HexColor('#2C3E50'),
+            textColor=colors.HexColor('#ffffff'),
             alignment=TA_CENTER,
             fontName='Helvetica-Bold'
         )
