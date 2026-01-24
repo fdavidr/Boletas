@@ -18,7 +18,9 @@ class EmpresaConfig(db.Model):
     telefono = db.Column(db.String(50))
     nit = db.Column(db.String(50))
     actividad = db.Column(db.String(200))
-    logo_path = db.Column(db.String(500))
+    logo_path = db.Column(db.String(500))  # Mantenido por compatibilidad
+    logo_data = db.Column(db.LargeBinary)  # Logo guardado como bytes
+    logo_mimetype = db.Column(db.String(50))  # Tipo MIME del logo (image/png, image/jpeg, etc)
     ultimo_numero_boleta = db.Column(db.Integer, default=0)
     prefijo_boleta = db.Column(db.String(20), default='BOL')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

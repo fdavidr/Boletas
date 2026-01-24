@@ -3,7 +3,7 @@ BOLETAS-V1 - Aplicación Web Flask
 Sistema de Generación de Boletas de Pago
 """
 
-from flask import Flask, render_template, request, jsonify, send_file, session, redirect, url_for
+from flask import Flask, render_template, request, jsonify, send_file, session, redirect, url_for, Response
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
@@ -128,10 +128,27 @@ def empleados():
     """Página de gestión de empleados"""
     return render_template('empleados.html')
 
-# Ruta para servir archivos del disco persistente (logos, etc)
+# Ruta para servir el logo desde la base de datos
+@app.route('/uploads/logo')
+def serve_logo():
+    """Sirve el logo desde la base de datos"""
+    try:
+        logo_data, logo_mimetype = empresa_config.get_logo_data()
+        if logo_data:
+            return Response(logo_data, mimetype=logo_mimetype or 'image/png')
+        else:
+            return jsonify({'error': 'Logo no encontrado'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Ruta para servir archivos del disco persistente (mantener por compatibilidad)
 @app.route('/uploads/<path:filename>')
 def serve_upload(filename):
     """Sirve archivos subidos desde el disco persistente"""
+    # Si piden el logo, redirigir a la ruta correcta
+    if filename.startswith('logo.'):
+        return serve_logo()
+    
     try:
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         if os.path.exists(filepath):
@@ -149,13 +166,13 @@ def get_empresa():
     """Obtiene los datos de la empresa"""
     empresa_data = empresa_config.get_empresa_data()
     
-    # Convertir ruta del logo a URL accesible solo si el archivo existe
+    # Verificar si existe logo en la base de datos
     logo_exists = empresa_config.logo_exists()
     empresa_data['logo_exists'] = logo_exists
     
-    if logo_exists and empresa_data.get('logo_path'):
-        logo_filename = os.path.basename(empresa_data['logo_path'])
-        empresa_data['logo_url'] = f'/uploads/{logo_filename}'
+    if logo_exists:
+        # URL fija para el logo desde la base de datos
+        empresa_data['logo_url'] = '/uploads/logo'
     else:
         empresa_data['logo_url'] = None
         empresa_data['logo_exists'] = False
@@ -169,17 +186,27 @@ def save_empresa():
     try:
         data = request.form
         logo_path = empresa_config.get_logo_path()
+        logo_data = None
+        logo_mimetype = None
         
         # Si se subió un nuevo logo
         if 'logo' in request.files:
             file = request.files['logo']
             if file and file.filename and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                # Usar un nombre fijo para el logo
-                ext = filename.rsplit('.', 1)[1].lower()
-                logo_filename = f"logo.{ext}"
-                logo_path = os.path.join(app.config['UPLOAD_FOLDER'], logo_filename)
-                file.save(logo_path)
+                # Leer el archivo como bytes para guardarlo en la BD
+                logo_data = file.read()
+                # Determinar el tipo MIME
+                ext = file.filename.rsplit('.', 1)[1].lower()
+                mime_types = {
+                    'png': 'image/png',
+                    'jpg': 'image/jpeg',
+                    'jpeg': 'image/jpeg',
+                    'gif': 'image/gif'
+                }
+                logo_mimetype = mime_types.get(ext, 'image/png')
+                
+                # Actualizar logo_path para referencia (aunque ya no se usa para archivos)
+                logo_path = f"database_logo.{ext}"
         
         empresa_config.set_empresa_data(
             nombre=data.get('nombre', ''),
@@ -189,7 +216,9 @@ def save_empresa():
             telefono=data.get('telefono', ''),
             nit=data.get('nit', ''),
             actividad=data.get('actividad', ''),
-            logo_path=logo_path
+            logo_path=logo_path,
+            logo_data=logo_data,
+            logo_mimetype=logo_mimetype
         )
         
         return jsonify({'success': True, 'message': 'Configuración guardada correctamente'})

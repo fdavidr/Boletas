@@ -4,6 +4,7 @@ Crea PDFs profesionales con formato adecuado
 """
 
 import os
+from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.units import inch
@@ -22,6 +23,25 @@ class PDFGenerator:
         self.output_dir = output_dir
         os.makedirs(self.output_dir, exist_ok=True)
     
+    def _get_logo_image(self, width, height):
+        """Obtiene el logo desde la base de datos y lo convierte a objeto Image"""
+        if not self.empresa_config.logo_exists():
+            return None
+        
+        try:
+            logo_data, logo_mimetype = self.empresa_config.get_logo_data()
+            if logo_data:
+                # Crear objeto BytesIO desde los bytes del logo
+                logo_stream = BytesIO(logo_data)
+                # Crear objeto Image de ReportLab desde el stream
+                logo = Image(logo_stream, width=width, height=height)
+                return logo
+        except Exception as e:
+            print(f"Error al cargar logo: {e}")
+            return None
+        
+        return None
+    
     def _add_header(self, elements, styles):
         """Agrega el encabezado con logo y datos de empresa"""
         empresa = self.empresa_config.get_empresa_data()
@@ -29,13 +49,10 @@ class PDFGenerator:
         # Crear tabla para el encabezado
         header_data = []
         
-        # Si existe logo, agregarlo
-        if self.empresa_config.logo_exists():
-            try:
-                logo = Image(self.empresa_config.get_logo_path(), width=1*inch, height=1*inch)
-                header_data.append([logo, Paragraph(f"<b>{empresa['nombre']}</b><br/>{empresa['eslogan']}", styles['Title'])])
-            except:
-                header_data.append(['', Paragraph(f"<b>{empresa['nombre']}</b><br/>{empresa['eslogan']}", styles['Title'])])
+        # Si existe logo, agregarlo desde la base de datos
+        logo = self._get_logo_image(width=1*inch, height=1*inch)
+        if logo:
+            header_data.append([logo, Paragraph(f"<b>{empresa['nombre']}</b><br/>{empresa['eslogan']}", styles['Title'])])
         else:
             header_data.append(['', Paragraph(f"<b>{empresa['nombre']}</b><br/>{empresa['eslogan']}", styles['Title'])])
         
@@ -87,15 +104,23 @@ class PDFGenerator:
         empresa = self.empresa_config.get_empresa_data()
         
         # Logo (columna izquierda) - flotante con proporciones preservadas
+        logo = None
         if self.empresa_config.logo_exists():
             try:
-                from PIL import Image as PILImage
-                img = PILImage.open(self.empresa_config.get_logo_path())
-                aspect_ratio = img.width / img.height
-                logo_height = 2.0 * inch  # Aumentado de 0.8 a 2.0 inches para mayor visibilidad
-                logo_width = logo_height * aspect_ratio
-                logo = Image(self.empresa_config.get_logo_path(), width=logo_width, height=logo_height)
-            except:
+                logo_data, logo_mimetype = self.empresa_config.get_logo_data()
+                if logo_data:
+                    from PIL import Image as PILImage
+                    # Cargar imagen desde bytes para obtener dimensiones
+                    img_stream = BytesIO(logo_data)
+                    img = PILImage.open(img_stream)
+                    aspect_ratio = img.width / img.height
+                    logo_height = 2.0 * inch  # Aumentado de 0.8 a 2.0 inches para mayor visibilidad
+                    logo_width = logo_height * aspect_ratio
+                    # Crear imagen de ReportLab desde bytes
+                    logo_stream = BytesIO(logo_data)
+                    logo = Image(logo_stream, width=logo_width, height=logo_height)
+            except Exception as e:
+                print(f"Error al cargar logo: {e}")
                 logo = ''
         else:
             logo = ''
@@ -331,15 +356,23 @@ class PDFGenerator:
         empresa = self.empresa_config.get_empresa_data()
         
         # Logo (columna izquierda)
+        logo = None
         if self.empresa_config.logo_exists():
             try:
-                from PIL import Image as PILImage
-                img = PILImage.open(self.empresa_config.get_logo_path())
-                aspect_ratio = img.width / img.height
-                logo_height = 2.0 * inch  # Aumentado de 0.8 a 2.0 inches para mayor visibilidad
-                logo_width = logo_height * aspect_ratio
-                logo = Image(self.empresa_config.get_logo_path(), width=logo_width, height=logo_height)
-            except:
+                logo_data, logo_mimetype = self.empresa_config.get_logo_data()
+                if logo_data:
+                    from PIL import Image as PILImage
+                    # Cargar imagen desde bytes para obtener dimensiones
+                    img_stream = BytesIO(logo_data)
+                    img = PILImage.open(img_stream)
+                    aspect_ratio = img.width / img.height
+                    logo_height = 2.0 * inch  # Aumentado de 0.8 a 2.0 inches para mayor visibilidad
+                    logo_width = logo_height * aspect_ratio
+                    # Crear imagen de ReportLab desde bytes
+                    logo_stream = BytesIO(logo_data)
+                    logo = Image(logo_stream, width=logo_width, height=logo_height)
+            except Exception as e:
+                print(f"Error al cargar logo: {e}")
                 logo = ''
         else:
             logo = ''

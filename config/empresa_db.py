@@ -36,7 +36,7 @@ class EmpresaConfig:
             'logo_path': logo_path
         }
     
-    def set_empresa_data(self, nombre, eslogan, contabilidad, direccion, telefono, nit, actividad, logo_path):
+    def set_empresa_data(self, nombre, eslogan, contabilidad, direccion, telefono, nit, actividad, logo_path, logo_data=None, logo_mimetype=None):
         """Actualiza los datos de la empresa en la base de datos"""
         config = EmpresaConfigModel.query.first()
         
@@ -50,6 +50,10 @@ class EmpresaConfig:
             config.nit = nit
             config.actividad = actividad
             config.logo_path = logo_path
+            # Solo actualizar logo si se proporcionó uno nuevo
+            if logo_data is not None:
+                config.logo_data = logo_data
+                config.logo_mimetype = logo_mimetype
         else:
             # Crear nuevo registro
             config = EmpresaConfigModel(
@@ -60,7 +64,9 @@ class EmpresaConfig:
                 telefono=telefono,
                 nit=nit,
                 actividad=actividad,
-                logo_path=logo_path
+                logo_path=logo_path,
+                logo_data=logo_data,
+                logo_mimetype=logo_mimetype
             )
             db.session.add(config)
         
@@ -101,6 +107,13 @@ class EmpresaConfig:
         return os.path.join(data_dir, 'uploads', 'logo.png')
     
     def logo_exists(self):
-        """Verifica si existe el archivo del logo"""
-        logo_path = self.get_logo_path()
-        return os.path.exists(logo_path)
+        """Verifica si existe el logo en la base de datos"""
+        config = EmpresaConfigModel.query.first()
+        return config is not None and config.logo_data is not None
+    
+    def get_logo_data(self):
+        """Retorna los datos del logo (bytes) y su tipo MIME"""
+        config = EmpresaConfigModel.query.first()
+        if config and config.logo_data:
+            return config.logo_data, config.logo_mimetype
+        return None, None
