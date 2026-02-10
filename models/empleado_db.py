@@ -4,7 +4,6 @@ Gestiona los datos de los empleados en base de datos
 """
 
 from config.database import db
-from config.models import Empleado as EmpleadoDB
 
 class EmpleadoManager:
     """Gestor de empleados usando PostgreSQL"""
@@ -20,6 +19,7 @@ class EmpleadoManager:
         Returns:
             dict: Empleado creado o None si hay error
         """
+        from config.models import Empleado as EmpleadoDB
         try:
             # Verificar si ya existe un empleado con ese CI
             existe = EmpleadoDB.query.filter_by(ci=ci).first()
@@ -51,6 +51,7 @@ class EmpleadoManager:
         Returns:
             dict: Datos del empleado o None si no existe
         """
+        from config.models import Empleado as EmpleadoDB
         empleado = EmpleadoDB.query.get(id_empleado)
         return empleado.to_dict() if empleado else None
     
@@ -61,6 +62,7 @@ class EmpleadoManager:
         Returns:
             list: Lista de empleados
         """
+        from config.models import Empleado as EmpleadoDB
         empleados = EmpleadoDB.query.filter_by(activo=True).all()
         return [emp.to_dict() for emp in empleados]
     
@@ -71,6 +73,7 @@ class EmpleadoManager:
         Returns:
             dict: Empleado actualizado o None si hay error
         """
+        from config.models import Empleado as EmpleadoDB
         try:
             empleado = EmpleadoDB.query.get(id_empleado)
             if not empleado:
@@ -102,6 +105,7 @@ class EmpleadoManager:
         Returns:
             bool: True si se eliminó correctamente, False si no
         """
+        from config.models import Empleado as EmpleadoDB
         try:
             empleado = EmpleadoDB.query.get(id_empleado)
             if not empleado:
@@ -125,6 +129,7 @@ class EmpleadoManager:
         Returns:
             list: Lista de empleados que coinciden
         """
+        from config.models import Empleado as EmpleadoDB
         termino_lower = f"%{termino.lower()}%"
         empleados = EmpleadoDB.query.filter(
             db.and_(
@@ -148,6 +153,7 @@ class EmpleadoManager:
         Returns:
             dict: Datos del empleado o None si no existe
         """
+        from config.models import Empleado as EmpleadoDB
         empleado = EmpleadoDB.query.filter_by(ci=ci, activo=True).first()
         return empleado.to_dict() if empleado else None
 

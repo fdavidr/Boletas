@@ -5,7 +5,6 @@ Maneja la carga y guardado de configuración de la empresa en base de datos
 
 import os
 from config.database import db
-from config.models import EmpresaConfig as EmpresaConfigModel
 
 class EmpresaConfig:
     def __init__(self):
@@ -14,6 +13,7 @@ class EmpresaConfig:
     
     def get_empresa_data(self):
         """Retorna los datos de la empresa desde la base de datos"""
+        from config.models import EmpresaConfig as EmpresaConfigModel
         config = EmpresaConfigModel.query.first()
         if config:
             return config.to_dict()
@@ -38,6 +38,7 @@ class EmpresaConfig:
     
     def set_empresa_data(self, nombre, eslogan, contabilidad, direccion, telefono, nit, actividad, logo_path, logo_data=None, logo_mimetype=None):
         """Actualiza los datos de la empresa en la base de datos"""
+        from config.models import EmpresaConfig as EmpresaConfigModel
         config = EmpresaConfigModel.query.first()
         
         if config:
@@ -74,6 +75,7 @@ class EmpresaConfig:
     
     def get_next_numero_boleta(self):
         """Obtiene el siguiente número de boleta y lo incrementa"""
+        from config.models import EmpresaConfig as EmpresaConfigModel
         config = EmpresaConfigModel.query.first()
         
         if not config:
@@ -98,6 +100,7 @@ class EmpresaConfig:
     
     def get_logo_path(self):
         """Retorna la ruta del logo"""
+        from config.models import EmpresaConfig as EmpresaConfigModel
         config = EmpresaConfigModel.query.first()
         if config and config.logo_path:
             return config.logo_path
@@ -108,11 +111,13 @@ class EmpresaConfig:
     
     def logo_exists(self):
         """Verifica si existe el logo en la base de datos"""
+        from config.models import EmpresaConfig as EmpresaConfigModel
         config = EmpresaConfigModel.query.first()
         return config is not None and config.logo_data is not None
-    
+        
     def get_logo_data(self):
         """Retorna los datos del logo (bytes) y su tipo MIME"""
+        from config.models import EmpresaConfig as EmpresaConfigModel
         config = EmpresaConfigModel.query.first()
         if config and config.logo_data:
             return config.logo_data, config.logo_mimetype

@@ -38,6 +38,9 @@ def init_db(app):
     db.init_app(app)
     
     with app.app_context():
+        # Importar modelos primero para que estén registrados
+        import config.models  # noqa: F401
+        
         # Crear todas las tablas
         db.create_all()
         
