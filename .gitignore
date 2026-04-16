@@ -14,6 +14,9 @@ instance/
 
 # Output PDFs (se generan dinámicamente)
 output/*.pdf
+data/output/
+data/uploads/
+data/boletas.db
 
 # Uploads temporales
 static/uploads/*

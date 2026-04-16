@@ -17,6 +17,7 @@ from datetime import datetime
 # Importar base de datos
 from config.database import db, init_db
 from config.empresa_db import EmpresaConfig
+from config.models import UsuarioSistema
 from models.boleta_mensual import BoletaMensual
 from models.boleta_aguinaldo import BoletaAguinaldo
 from models.boleta_liquidacion import BoletaLiquidacion
@@ -50,10 +51,6 @@ empleado_manager = EmpleadoManager()
 # Extensiones permitidas para logos
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
-# Credenciales de usuario (en producción usar base de datos)
-USUARIO = "Santandera#25"
-PASSWORD_HASH = generate_password_hash("Santandera#25")
-
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -66,6 +63,73 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+@app.before_request
+def check_first_time_setup():
+    """Redirige a /setup si aún no se ha creado el usuario del sistema"""
+    rutas_exentas = {'setup', 'api_setup', 'static'}
+    if request.endpoint in rutas_exentas or request.endpoint is None:
+        return None
+    try:
+        usuario = UsuarioSistema.query.first()
+        if not usuario:
+            return redirect(url_for('setup'))
+    except Exception:
+        return redirect(url_for('setup'))
+
+# ── Configuración inicial ─────────────────────────────────────────────────
+@app.route('/setup', methods=['GET'])
+def setup():
+    """Página de configuración inicial (primer uso)"""
+    try:
+        if UsuarioSistema.query.first():
+            return redirect(url_for('login'))
+    except Exception:
+        pass
+    return render_template('setup.html')
+
+@app.route('/api/setup', methods=['POST'])
+def api_setup():
+    """Crea el usuario y preguntas de seguridad en el primer uso"""
+    try:
+        if UsuarioSistema.query.first():
+            return jsonify({'success': False, 'message': 'El sistema ya fue configurado'}), 400
+
+        data = request.json
+        username  = data.get('username', '').strip()
+        password  = data.get('password', '').strip()
+        preguntas = data.get('preguntas', [])  # lista de {pregunta, respuesta}
+
+        if not username or not password:
+            return jsonify({'success': False, 'message': 'Usuario y contraseña son obligatorios'}), 400
+        if len(preguntas) != 5:
+            return jsonify({'success': False, 'message': 'Se requieren exactamente 5 preguntas'}), 400
+        for p in preguntas:
+            if not p.get('pregunta','').strip() or not p.get('respuesta','').strip():
+                return jsonify({'success': False, 'message': 'Completa todas las preguntas y respuestas'}), 400
+
+        nuevo = UsuarioSistema(
+            username       = username,
+            password_hash  = generate_password_hash(password),
+            password_plain = password,
+            pregunta_1     = preguntas[0]['pregunta'].strip(),
+            respuesta_1    = preguntas[0]['respuesta'].strip().lower(),
+            pregunta_2     = preguntas[1]['pregunta'].strip(),
+            respuesta_2    = preguntas[1]['respuesta'].strip().lower(),
+            pregunta_3     = preguntas[2]['pregunta'].strip(),
+            respuesta_3    = preguntas[2]['respuesta'].strip().lower(),
+            pregunta_4     = preguntas[3]['pregunta'].strip(),
+            respuesta_4    = preguntas[3]['respuesta'].strip().lower(),
+            pregunta_5     = preguntas[4]['pregunta'].strip(),
+            respuesta_5    = preguntas[4]['respuesta'].strip().lower(),
+        )
+        db.session.add(nuevo)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+# ── Login / Logout ─────────────────────────────────────────────────────────
 @app.route('/login', methods=['GET'])
 def login():
     """Página de inicio de sesión"""
@@ -77,16 +141,16 @@ def login():
 def api_login():
     """API para iniciar sesión"""
     try:
-        data = request.json
+        data     = request.json
         username = data.get('username', '')
         password = data.get('password', '')
-        
-        if username == USUARIO and check_password_hash(PASSWORD_HASH, password):
+
+        usuario = UsuarioSistema.query.first()
+        if usuario and username == usuario.username and check_password_hash(usuario.password_hash, password):
             session['logged_in'] = True
-            session['username'] = username
+            session['username']  = username
             return jsonify({'success': True, 'message': 'Inicio de sesión exitoso'})
-        else:
-            return jsonify({'success': False, 'message': 'Usuario o contraseña incorrectos'}), 401
+        return jsonify({'success': False, 'message': 'Usuario o contraseña incorrectos'}), 401
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
 
@@ -95,6 +159,53 @@ def logout():
     """Cerrar sesión"""
     session.clear()
     return redirect(url_for('login'))
+
+# ── Recuperación de contraseña ─────────────────────────────────────────────
+@app.route('/recuperar', methods=['GET'])
+def recuperar():
+    """Página de recuperación de contraseña"""
+    return render_template('recuperar.html')
+
+@app.route('/api/preguntas', methods=['GET'])
+def api_preguntas():
+    """Devuelve las 5 preguntas de seguridad (sin las respuestas)"""
+    try:
+        usuario = UsuarioSistema.query.first()
+        if not usuario:
+            return jsonify({'success': False}), 404
+        return jsonify({'success': True, 'preguntas': [
+            usuario.pregunta_1, usuario.pregunta_2, usuario.pregunta_3,
+            usuario.pregunta_4, usuario.pregunta_5
+        ]})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/recuperar', methods=['POST'])
+def api_recuperar():
+    """Verifica respuestas y devuelve credenciales si al menos 3 son correctas"""
+    try:
+        data      = request.json
+        respuestas = data.get('respuestas', [])  # lista de 5 strings
+
+        usuario = UsuarioSistema.query.first()
+        if not usuario:
+            return jsonify({'success': False}), 404
+
+        correctas_db = [
+            usuario.respuesta_1, usuario.respuesta_2, usuario.respuesta_3,
+            usuario.respuesta_4, usuario.respuesta_5
+        ]
+        aciertos = sum(
+            1 for db_r, user_r in zip(correctas_db, respuestas)
+            if db_r.strip() == str(user_r).strip().lower()
+        )
+        if aciertos >= 3:
+            return jsonify({'success': True, 'username': usuario.username,
+                            'password': usuario.password_plain, 'aciertos': aciertos})
+        return jsonify({'success': False, 'aciertos': aciertos,
+                        'message': f'Solo {aciertos} de 5 respuestas correctas. Se necesitan al menos 3.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/')
 @login_required
@@ -344,6 +455,9 @@ def generar_boleta_liquidacion():
         boleta.anticipos = float(data.get('anticipos', 0))
         boleta.prestamos = float(data.get('prestamos', 0))
         boleta.otras_deducciones = float(data.get('otras_deducciones', 0))
+        
+        # Nota adicional (máx 300 chars por seguridad)
+        boleta.nota = str(data.get('nota', ''))[:300]
         
         # Fecha, número y método de pago
         fecha_str = data.get('fecha_emision', datetime.now().strftime("%d/%m/%Y"))

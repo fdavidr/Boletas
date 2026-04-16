@@ -31,6 +31,9 @@ class BoletaLiquidacion:
         self.prestamos = 0.0
         self.otras_deducciones = 0.0
         
+        # Nota adicional
+        self.nota = ""
+        
         # Número de boleta
         self.numero_boleta = ""
         self.fecha_emision = datetime.now()

@@ -130,6 +130,16 @@
             color: var(--text-light);
             font-size: 0.85rem;
         }
+        .btn-olvide {
+            display: block;
+            text-align: center;
+            margin-top: 1rem;
+            color: #3498DB;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .btn-olvide:hover { color: #2980b9; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -158,7 +168,9 @@
                 
                 <button type="submit" class="btn-login">Ingresar al Sistema</button>
             </form>
-            
+
+            <a href="/recuperar" class="btn-olvide">🔑 Olvidé mi contraseña</a>
+
             <div class="login-footer">
                 <p>BOLETAS-V1 © 2025</p>
             </div>

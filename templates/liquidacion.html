@@ -153,6 +153,17 @@
                     </div>
                 </div>
 
+                <div class="form-section">
+                    <h3 class="section-title">NOTA</h3>
+                    <div class="form-group">
+                        <label for="nota">Observaciones o datos adicionales <small style="color:#999">(máx. 300 caracteres)</small></label>
+                        <textarea id="nota" name="nota" class="form-control" rows="3"
+                                  maxlength="300" placeholder="Ingrese aquí cualquier observación o dato adicional..."
+                                  style="resize: vertical; font-family: inherit;"></textarea>
+                        <small id="notaContador" style="color:#999;">0 / 300 caracteres</small>
+                    </div>
+                </div>
+
                 <div class="totals-box">
                     <div class="total-item">
                         <span class="total-label">Total Beneficios:</span>
@@ -208,8 +219,12 @@
     <script>
         let empleados = [];
         
-        // Cargar empleados al iniciar
+        // Contador de caracteres para nota
         document.addEventListener('DOMContentLoaded', async function() {
+            document.getElementById('nota').addEventListener('input', function() {
+                document.getElementById('notaContador').textContent = this.value.length + ' / 300 caracteres';
+            });
+
             try {
                 const response = await fetch('/api/empleados');
                 const result = await response.json();

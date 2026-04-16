@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración Inicial - BOLETAS-V1</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #2C3E50 0%, #3498DB 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .setup-box {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+            max-width: 680px;
+            width: 100%;
+            overflow: hidden;
+            animation: fadeInUp 0.5s ease;
+        }
+        @keyframes fadeInUp {
+            from { opacity:0; transform:translateY(30px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        .setup-header {
+            background: linear-gradient(135deg, #2C3E50, #3498DB);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+        .setup-header .icon { font-size: 3.5rem; margin-bottom: 0.5rem; }
+        .setup-header h1   { font-size: 1.7rem; margin: 0 0 0.4rem; }
+        .setup-header p    { font-size: 0.95rem; opacity: 0.85; margin: 0; }
+        .setup-body   { padding: 2rem 2.5rem; }
+        .section-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #2C3E50;
+            margin: 1.5rem 0 0.8rem;
+            padding-bottom: 0.4rem;
+            border-bottom: 2px solid #3498DB;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+            color: #555;
+            font-size: 0.9rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498DB;
+            box-shadow: 0 0 0 3px rgba(52,152,219,0.15);
+        }
+        .pregunta-bloque {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 1rem 1.2rem;
+            margin-bottom: 0.8rem;
+        }
+        .pregunta-num {
+            font-weight: 700;
+            color: #3498DB;
+            font-size: 0.85rem;
+            margin-bottom: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #27AE60, #2ECC71);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: all 0.2s;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(39,174,96,0.35); }
+        .alert {
+            padding: 0.9rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            display: none;
+        }
+        .alert-error   { background: #fee; color: #c33; border: 1px solid #fcc; }
+        .alert-success { background: #efe; color: #2a7a2a; border: 1px solid #cec; }
+        .note {
+            font-size: 0.82rem;
+            color: #888;
+            margin-top: 0.3rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-box">
+        <div class="setup-header">
+            <div class="icon">🔧</div>
+            <h1>Configuración Inicial</h1>
+            <p>Crea tu usuario, contraseña y preguntas de seguridad para comenzar</p>
+        </div>
+        <div class="setup-body">
+            <div id="alertBox" class="alert"></div>
+
+            <div class="section-title">👤 Datos de acceso</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Usuario</label>
+                    <input type="text" id="username" placeholder="Nombre de usuario" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="password" placeholder="Contraseña" autocomplete="new-password">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Confirmar Contraseña</label>
+                <input type="password" id="password2" placeholder="Repite la contraseña" autocomplete="new-password">
+            </div>
+
+            <div class="section-title">🔐 Preguntas de seguridad</div>
+            <p class="note" style="margin-bottom:0.8rem;">Las respuestas no distinguen mayúsculas de minúsculas. Anótalas en un lugar seguro.</p>
+
+            <div id="preguntasContainer"></div>
+
+            <button class="btn-submit" onclick="guardarSetup()">✅ Guardar y continuar</button>
+        </div>
+    </div>
+
+    <script>
+        const PREGUNTAS_SUGERIDAS = [
+            "¿Cuál es el nombre de tu primera mascota?",
+            "¿En qué ciudad naciste?",
+            "¿Cuál es el nombre de tu madre?",
+            "¿Cuál fue el nombre de tu escuela primaria?",
+            "¿Cuál es tu comida favorita?"
+        ];
+
+        // Renderizar 5 bloques de pregunta
+        const container = document.getElementById('preguntasContainer');
+        for (let i = 0; i < 5; i++) {
+            container.innerHTML += `
+            <div class="pregunta-bloque">
+                <div class="pregunta-num">Pregunta ${i+1}</div>
+                <div class="form-group">
+                    <label>Escribe la pregunta</label>
+                    <input type="text" id="pregunta_${i}" placeholder="${PREGUNTAS_SUGERIDAS[i]}" value="${PREGUNTAS_SUGERIDAS[i]}">
+                </div>
+                <div class="form-group">
+                    <label>Respuesta</label>
+                    <input type="text" id="respuesta_${i}" placeholder="Tu respuesta">
+                </div>
+            </div>`;
+        }
+
+        function mostrarAlerta(msg, tipo = 'error') {
+            const box = document.getElementById('alertBox');
+            box.textContent = msg;
+            box.className = `alert alert-${tipo}`;
+            box.style.display = 'block';
+            if (tipo === 'error') setTimeout(() => box.style.display = 'none', 4000);
+        }
+
+        async function guardarSetup() {
+            const username  = document.getElementById('username').value.trim();
+            const password  = document.getElementById('password').value;
+            const password2 = document.getElementById('password2').value;
+
+            if (!username) return mostrarAlerta('El nombre de usuario es obligatorio.');
+            if (!password) return mostrarAlerta('La contraseña es obligatoria.');
+            if (password !== password2) return mostrarAlerta('Las contraseñas no coinciden.');
+
+            const preguntas = [];
+            for (let i = 0; i < 5; i++) {
+                const preg = document.getElementById(`pregunta_${i}`).value.trim();
+                const resp = document.getElementById(`respuesta_${i}`).value.trim();
+                if (!preg || !resp) return mostrarAlerta(`Completa la pregunta y respuesta ${i+1}.`);
+                preguntas.push({ pregunta: preg, respuesta: resp });
+            }
+
+            try {
+                const res = await fetch('/api/setup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, preguntas })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    mostrarAlerta('¡Configuración guardada! Redirigiendo al login...', 'success');
+                    setTimeout(() => window.location.href = '/login', 1800);
+                } else {
+                    mostrarAlerta(data.message || 'Error al guardar la configuración.');
+                }
+            } catch (e) {
+                mostrarAlerta('Error de conexión con el servidor.');
+            }
+        }
+    </script>
+</body>
+</html>

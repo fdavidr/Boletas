@@ -76,3 +76,26 @@ class Empleado(db.Model):
             fecha_ingreso=data['fecha_ingreso'],
             sueldo=float(data['sueldo'])
         )
+
+
+class UsuarioSistema(db.Model):
+    """Usuario y preguntas de seguridad del sistema"""
+    __tablename__ = 'usuario_sistema'
+
+    id            = db.Column(db.Integer, primary_key=True)
+    username      = db.Column(db.String(100), nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
+    password_plain= db.Column(db.String(200), nullable=False)   # para recuperación local
+
+    pregunta_1    = db.Column(db.String(300), nullable=False)
+    respuesta_1   = db.Column(db.String(200), nullable=False)
+    pregunta_2    = db.Column(db.String(300), nullable=False)
+    respuesta_2   = db.Column(db.String(200), nullable=False)
+    pregunta_3    = db.Column(db.String(300), nullable=False)
+    respuesta_3   = db.Column(db.String(200), nullable=False)
+    pregunta_4    = db.Column(db.String(300), nullable=False)
+    respuesta_4   = db.Column(db.String(200), nullable=False)
+    pregunta_5    = db.Column(db.String(300), nullable=False)
+    respuesta_5   = db.Column(db.String(200), nullable=False)
+
+    created_at    = db.Column(db.DateTime, default=datetime.utcnow)

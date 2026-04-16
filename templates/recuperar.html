@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Contraseña - BOLETAS-V1</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #2C3E50 0%, #8E44AD 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .rec-box {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+            animation: fadeInUp 0.5s ease;
+        }
+        @keyframes fadeInUp {
+            from { opacity:0; transform:translateY(30px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        .rec-header {
+            background: linear-gradient(135deg, #2C3E50, #8E44AD);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+        .rec-header .icon { font-size: 3rem; margin-bottom: 0.5rem; }
+        .rec-header h1   { font-size: 1.6rem; margin: 0 0 0.4rem; }
+        .rec-header p    { font-size: 0.9rem; opacity: 0.85; margin: 0; }
+        .rec-body { padding: 2rem 2.5rem; }
+
+        .pregunta-bloque {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid #8E44AD;
+            border-radius: 8px;
+            padding: 0.9rem 1.2rem;
+            margin-bottom: 0.9rem;
+        }
+        .pregunta-texto {
+            font-weight: 600;
+            color: #2C3E50;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.7rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #8E44AD;
+            box-shadow: 0 0 0 3px rgba(142,68,173,0.15);
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 0.9rem;
+            background: linear-gradient(135deg, #8E44AD, #9B59B6);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.2s;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(142,68,173,0.35); }
+        .btn-volver {
+            width: 100%;
+            padding: 0.7rem;
+            background: #f0f0f0;
+            color: #555;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin-top: 0.7rem;
+            transition: background 0.2s;
+        }
+        .btn-volver:hover { background: #e0e0e0; }
+        .alert {
+            padding: 0.9rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            display: none;
+        }
+        .alert-error   { background: #fee; color: #c33; border: 1px solid #fcc; }
+        .info-hint {
+            font-size: 0.85rem;
+            color: #888;
+            text-align: center;
+            margin-bottom: 1.2rem;
+        }
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            animation: popIn 0.3s ease;
+        }
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to   { transform: scale(1);   opacity: 1; }
+        }
+        .modal .check { font-size: 3.5rem; margin-bottom: 1rem; }
+        .modal h2 { color: #27AE60; margin: 0 0 1.2rem; }
+        .credencial-item {
+            background: #f0f8ff;
+            border: 1px solid #b3d7f5;
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+            margin-bottom: 0.7rem;
+            text-align: left;
+        }
+        .credencial-item label {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .credencial-item .valor {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2C3E50;
+            word-break: break-all;
+        }
+        .btn-modal-cerrar {
+            margin-top: 1.2rem;
+            padding: 0.8rem 2rem;
+            background: linear-gradient(135deg, #27AE60, #2ECC71);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        #loadingMsg { text-align: center; color: #888; padding: 2rem; }
+    </style>
+</head>
+<body>
+    <div class="rec-box">
+        <div class="rec-header">
+            <div class="icon">🔑</div>
+            <h1>Recuperar Contraseña</h1>
+            <p>Responde correctamente al menos 3 de las 5 preguntas</p>
+        </div>
+        <div class="rec-body">
+            <div id="alertBox" class="alert"></div>
+            <p class="info-hint">Las respuestas no distinguen mayúsculas de minúsculas</p>
+
+            <div id="loadingMsg">Cargando preguntas...</div>
+            <div id="preguntasContainer" style="display:none;"></div>
+
+            <button class="btn-submit" id="btnVerificar" style="display:none;" onclick="verificar()">🔍 Verificar Respuestas</button>
+            <button class="btn-volver" onclick="window.location.href='/login'">← Volver al Login</button>
+        </div>
+    </div>
+
+    <!-- Modal de credenciales -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="check">✅</div>
+            <h2>Credenciales Encontradas</h2>
+            <div class="credencial-item">
+                <label>Usuario</label>
+                <div class="valor" id="modalUsuario"></div>
+            </div>
+            <div class="credencial-item">
+                <label>Contraseña</label>
+                <div class="valor" id="modalPassword"></div>
+            </div>
+            <button class="btn-modal-cerrar" onclick="window.location.href='/login'">Ir al Login</button>
+        </div>
+    </div>
+
+    <script>
+        // Cargar preguntas al iniciar
+        async function cargarPreguntas() {
+            try {
+                const res  = await fetch('/api/preguntas');
+                const data = await res.json();
+                if (!data.success) {
+                    document.getElementById('loadingMsg').textContent = 'No se encontraron preguntas configuradas.';
+                    return;
+                }
+                document.getElementById('loadingMsg').style.display = 'none';
+
+                const container = document.getElementById('preguntasContainer');
+                container.style.display = 'block';
+                container.innerHTML = '';
+
+                data.preguntas.forEach((preg, i) => {
+                    container.innerHTML += `
+                    <div class="pregunta-bloque">
+                        <div class="pregunta-texto">${i+1}. ${preg}</div>
+                        <div class="form-group">
+                            <input type="text" id="resp_${i}" placeholder="Tu respuesta">
+                        </div>
+                    </div>`;
+                });
+
+                document.getElementById('btnVerificar').style.display = 'block';
+            } catch (e) {
+                document.getElementById('loadingMsg').textContent = 'Error al cargar las preguntas.';
+            }
+        }
+
+        function mostrarAlerta(msg) {
+            const box = document.getElementById('alertBox');
+            box.textContent = msg;
+            box.className = 'alert alert-error';
+            box.style.display = 'block';
+            setTimeout(() => box.style.display = 'none', 4000);
+        }
+
+        async function verificar() {
+            const respuestas = [];
+            for (let i = 0; i < 5; i++) {
+                const el = document.getElementById(`resp_${i}`);
+                respuestas.push(el ? el.value.trim() : '');
+            }
+
+            try {
+                const res = await fetch('/api/recuperar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ respuestas })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById('modalUsuario').textContent  = data.username;
+                    document.getElementById('modalPassword').textContent = data.password;
+                    document.getElementById('modalOverlay').classList.add('show');
+                } else {
+                    mostrarAlerta(data.message || 'Respuestas incorrectas. Intenta nuevamente.');
+                }
+            } catch (e) {
+                mostrarAlerta('Error de conexión con el servidor.');
+            }
+        }
+
+        cargarPreguntas();
+    </script>
+</body>
+</html>
