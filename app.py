@@ -8,6 +8,10 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import os
+import json
+import base64
+import io
+import zipfile
 from datetime import datetime
 
 # Importar base de datos
@@ -22,17 +26,17 @@ from generators.pdf_generator import PDFGenerator
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'boletas-v1-secret-key-2025'
 
-# Configuración de carpetas - usar disco persistente en Render
-DATA_DIR = os.environ.get('RENDER_DISK_PATH', 'data')
+# Carpeta de datos local (dentro del directorio del proyecto)
+from config.database import DATA_DIR
 app.config['UPLOAD_FOLDER'] = os.path.join(DATA_DIR, 'uploads')
 app.config['OUTPUT_FOLDER'] = os.path.join(DATA_DIR, 'output')
-app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max (para importar archivos)
 
 # Crear directorios necesarios
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
-os.makedirs('static/uploads', exist_ok=True)  # Para archivos estáticos locales
-os.makedirs('output', exist_ok=True)  # Para desarrollo local
+os.makedirs('static/uploads', exist_ok=True)
+os.makedirs(DATA_DIR, exist_ok=True)
 
 # Inicializar base de datos PostgreSQL
 init_db(app)
@@ -485,6 +489,165 @@ def buscar_empleados():
         return jsonify({'success': True, 'empleados': empleados})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
+
+# ── Exportar / Importar datos ──────────────────────────────────────────────────
+
+@app.route('/api/exportar', methods=['GET'])
+@login_required
+def exportar_datos():
+    """Exporta todos los datos (empresa + empleados) a un archivo JSON descargable"""
+    try:
+        from config.models import EmpresaConfig as EmpresaModel, Empleado as EmpleadoModel
+
+        # Datos de empresa
+        empresa = EmpresaModel.query.first()
+        empresa_dict = {}
+        if empresa:
+            empresa_dict = {
+                'nombre': empresa.nombre,
+                'eslogan': empresa.eslogan,
+                'contabilidad': empresa.contabilidad,
+                'direccion': empresa.direccion,
+                'telefono': empresa.telefono,
+                'nit': empresa.nit,
+                'actividad': empresa.actividad,
+                'logo_path': empresa.logo_path,
+                'ultimo_numero_boleta': empresa.ultimo_numero_boleta,
+                'prefijo_boleta': empresa.prefijo_boleta,
+                'logo_mimetype': empresa.logo_mimetype,
+                # Logo como base64 para poder transferirlo
+                'logo_data_b64': base64.b64encode(empresa.logo_data).decode('utf-8') if empresa.logo_data else None,
+            }
+
+        # Datos de empleados (todos, incluso inactivos, para respaldo completo)
+        empleados = EmpleadoModel.query.all()
+        empleados_list = []
+        for emp in empleados:
+            empleados_list.append({
+                'id': emp.id,
+                'nombre_completo': emp.nombre_completo,
+                'ci': emp.ci,
+                'cargo': emp.cargo,
+                'fecha_ingreso': emp.fecha_ingreso,
+                'sueldo': emp.sueldo,
+                'activo': emp.activo,
+            })
+
+        exportacion = {
+            'version': '1.0',
+            'fecha_exportacion': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'empresa': empresa_dict,
+            'empleados': empleados_list,
+        }
+
+        json_bytes = json.dumps(exportacion, ensure_ascii=False, indent=2).encode('utf-8')
+        nombre_archivo = f"boletas_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+
+        return send_file(
+            io.BytesIO(json_bytes),
+            mimetype='application/json',
+            as_attachment=True,
+            download_name=nombre_archivo
+        )
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/importar', methods=['POST'])
+@login_required
+def importar_datos():
+    """Importa datos desde un archivo JSON exportado previamente"""
+    try:
+        if 'archivo' not in request.files:
+            return jsonify({'success': False, 'message': 'No se recibió ningún archivo'}), 400
+
+        archivo = request.files['archivo']
+        if not archivo.filename or not archivo.filename.endswith('.json'):
+            return jsonify({'success': False, 'message': 'El archivo debe ser un .json exportado por este programa'}), 400
+
+        contenido = archivo.read()
+        datos = json.loads(contenido.decode('utf-8'))
+
+        if 'version' not in datos or 'empresa' not in datos or 'empleados' not in datos:
+            return jsonify({'success': False, 'message': 'Archivo no válido o de versión incompatible'}), 400
+
+        from config.models import EmpresaConfig as EmpresaModel, Empleado as EmpleadoModel
+        from config.database import db
+
+        # Restaurar empresa
+        empresa_data = datos.get('empresa', {})
+        if empresa_data:
+            logo_data = None
+            if empresa_data.get('logo_data_b64'):
+                logo_data = base64.b64decode(empresa_data['logo_data_b64'])
+
+            empresa = EmpresaModel.query.first()
+            if empresa:
+                empresa.nombre = empresa_data.get('nombre', empresa.nombre)
+                empresa.eslogan = empresa_data.get('eslogan', empresa.eslogan)
+                empresa.contabilidad = empresa_data.get('contabilidad', empresa.contabilidad)
+                empresa.direccion = empresa_data.get('direccion', empresa.direccion)
+                empresa.telefono = empresa_data.get('telefono', empresa.telefono)
+                empresa.nit = empresa_data.get('nit', empresa.nit)
+                empresa.actividad = empresa_data.get('actividad', empresa.actividad)
+                empresa.logo_path = empresa_data.get('logo_path', empresa.logo_path)
+                empresa.ultimo_numero_boleta = empresa_data.get('ultimo_numero_boleta', empresa.ultimo_numero_boleta)
+                empresa.prefijo_boleta = empresa_data.get('prefijo_boleta', empresa.prefijo_boleta)
+                if logo_data is not None:
+                    empresa.logo_data = logo_data
+                    empresa.logo_mimetype = empresa_data.get('logo_mimetype', 'image/png')
+            else:
+                empresa = EmpresaModel(
+                    nombre=empresa_data.get('nombre', 'Mi Empresa'),
+                    eslogan=empresa_data.get('eslogan', ''),
+                    contabilidad=empresa_data.get('contabilidad', ''),
+                    direccion=empresa_data.get('direccion', ''),
+                    telefono=empresa_data.get('telefono', ''),
+                    nit=empresa_data.get('nit', ''),
+                    actividad=empresa_data.get('actividad', ''),
+                    logo_path=empresa_data.get('logo_path', ''),
+                    ultimo_numero_boleta=empresa_data.get('ultimo_numero_boleta', 0),
+                    prefijo_boleta=empresa_data.get('prefijo_boleta', 'BOL'),
+                    logo_data=logo_data,
+                    logo_mimetype=empresa_data.get('logo_mimetype', 'image/png'),
+                )
+                db.session.add(empresa)
+
+        # Restaurar empleados: actualizar existentes por CI, insertar nuevos
+        empleados_importados = 0
+        empleados_actualizados = 0
+        for emp_data in datos.get('empleados', []):
+            ci = emp_data.get('ci', '')
+            existente = EmpleadoModel.query.filter_by(ci=ci).first()
+            if existente:
+                existente.nombre_completo = emp_data.get('nombre_completo', existente.nombre_completo)
+                existente.cargo = emp_data.get('cargo', existente.cargo)
+                existente.fecha_ingreso = emp_data.get('fecha_ingreso', existente.fecha_ingreso)
+                existente.sueldo = float(emp_data.get('sueldo', existente.sueldo))
+                existente.activo = emp_data.get('activo', existente.activo)
+                empleados_actualizados += 1
+            else:
+                nuevo = EmpleadoModel(
+                    nombre_completo=emp_data.get('nombre_completo', ''),
+                    ci=ci,
+                    cargo=emp_data.get('cargo', ''),
+                    fecha_ingreso=emp_data.get('fecha_ingreso', ''),
+                    sueldo=float(emp_data.get('sueldo', 0)),
+                    activo=emp_data.get('activo', True),
+                )
+                db.session.add(nuevo)
+                empleados_importados += 1
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': f'Importación completada: {empleados_importados} empleados nuevos, {empleados_actualizados} actualizados.',
+        })
+    except json.JSONDecodeError:
+        return jsonify({'success': False, 'message': 'El archivo no es un JSON válido'}), 400
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

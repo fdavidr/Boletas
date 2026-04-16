@@ -1,6 +1,6 @@
 """
-Módulo de configuración de empresa usando PostgreSQL
-Maneja la carga y guardado de configuración de la empresa en base de datos
+Módulo de configuración de empresa
+Maneja la carga y guardado de configuración de la empresa en base de datos local
 """
 
 import os
@@ -21,10 +21,6 @@ class EmpresaConfig:
     
     def get_default_config(self):
         """Retorna configuración por defecto"""
-        # Usar carpeta persistente para logos
-        data_dir = os.environ.get('RENDER_DISK_PATH', 'data')
-        logo_path = os.path.join(data_dir, 'uploads', 'logo.png')
-        
         return {
             'nombre': 'Mi Empresa',
             'eslogan': 'Excelencia en Servicios',
@@ -33,7 +29,7 @@ class EmpresaConfig:
             'telefono': '591-2-1234567',
             'nit': '12345678',
             'actividad': 'Servicios Generales',
-            'logo_path': logo_path
+            'logo_path': ''
         }
     
     def set_empresa_data(self, nombre, eslogan, contabilidad, direccion, telefono, nit, actividad, logo_path, logo_data=None, logo_mimetype=None):

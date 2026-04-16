@@ -103,7 +103,48 @@
                 </div>
             </form>
         </div>
-    </div>
+
+        <!-- Sección de Respaldo de Datos -->
+        <div class="form-container fade-in" style="animation-delay: 0.15s;">
+            <div class="form-section">
+                <h3 class="section-title">💾 RESPALDO DE DATOS</h3>
+                <p style="color: #666; margin-bottom: 20px;">
+                    Exporte todos los datos del programa (empresa y empleados) a un archivo para hacer una copia de seguridad
+                    o trasladarlos a otro equipo con el programa instalado.
+                </p>
+
+                <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <!-- Exportar -->
+                    <div style="background: #f0f9f0; border: 1px solid #c3e6cb; border-radius: 8px; padding: 20px;">
+                        <h4 style="color: #155724; margin-bottom: 10px;">📤 Exportar Datos</h4>
+                        <p style="color: #555; font-size: 0.9rem; margin-bottom: 15px;">
+                            Descarga un archivo <strong>.json</strong> con todos los datos: configuración de empresa, logo y empleados.
+                        </p>
+                        <button type="button" class="btn btn-success" id="btnExportar" onclick="exportarDatos()">
+                            📤 Descargar Respaldo
+                        </button>
+                    </div>
+
+                    <!-- Importar -->
+                    <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 20px;">
+                        <h4 style="color: #856404; margin-bottom: 10px;">📥 Importar Datos</h4>
+                        <p style="color: #555; font-size: 0.9rem; margin-bottom: 15px;">
+                            Carga un archivo <strong>.json</strong> exportado previamente. Los empleados existentes se actualizarán y los nuevos se agregarán.
+                        </p>
+                        <div class="file-input-wrapper" style="margin-bottom: 12px;">
+                            <input type="file" id="archivoImportar" accept=".json">
+                            <label for="archivoImportar" class="file-input-label">📁 Seleccionar Archivo</label>
+                            <span class="file-name" id="fileNameImportar">Ningún archivo seleccionado</span>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="btnImportar" onclick="importarDatos()" disabled>
+                            📥 Importar Datos
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /.container -->
 
     <footer class="footer">
         <p><strong>BOLETAS-V1</strong> © 2025 - Sistema de Gestión de Boletas de Pago</p>
@@ -135,11 +176,92 @@
             }
         }
 
-        // Mostrar nombre de archivo seleccionado
+        // Mostrar nombre de archivo seleccionado (logo)
         document.getElementById('logo').addEventListener('change', function(e) {
             const fileName = e.target.files[0]?.name || 'Ningún archivo seleccionado';
             document.getElementById('fileName').textContent = fileName;
         });
+
+        // Habilitar botón importar cuando se selecciona archivo
+        document.getElementById('archivoImportar').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            document.getElementById('fileNameImportar').textContent = file ? file.name : 'Ningún archivo seleccionado';
+            document.getElementById('btnImportar').disabled = !file;
+        });
+
+        // Exportar datos
+        async function exportarDatos() {
+            const btn = document.getElementById('btnExportar');
+            btn.innerHTML = '<span class="spinner"></span> Generando...';
+            btn.disabled = true;
+            try {
+                const response = await fetch('/api/exportar');
+                if (!response.ok) {
+                    const err = await response.json();
+                    showAlert('Error al exportar: ' + err.message, 'error');
+                    return;
+                }
+                // Disparar descarga
+                const blob = await response.blob();
+                const disposition = response.headers.get('Content-Disposition') || '';
+                const match = disposition.match(/filename="?([^"]+)"?/);
+                const filename = match ? match[1] : 'boletas_backup.json';
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+                showAlert('Respaldo descargado correctamente', 'success');
+            } catch (error) {
+                showAlert('Error al exportar: ' + error.message, 'error');
+            } finally {
+                btn.innerHTML = '📤 Descargar Respaldo';
+                btn.disabled = false;
+            }
+        }
+
+        // Importar datos
+        async function importarDatos() {
+            const fileInput = document.getElementById('archivoImportar');
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            if (!confirm('¿Desea importar los datos del archivo seleccionado?\nLos empleados existentes se actualizarán con los datos del archivo.')) return;
+
+            const btn = document.getElementById('btnImportar');
+            btn.innerHTML = '<span class="spinner"></span> Importando...';
+            btn.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('archivo', file);
+
+                const response = await fetch('/api/importar', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    fileInput.value = '';
+                    document.getElementById('fileNameImportar').textContent = 'Ningún archivo seleccionado';
+                    btn.disabled = true;
+                    // Recargar configuración de empresa en el formulario
+                    loadConfig();
+                } else {
+                    showAlert('Error al importar: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showAlert('Error al importar: ' + error.message, 'error');
+            } finally {
+                btn.innerHTML = '📥 Importar Datos';
+                if (fileInput.files[0]) btn.disabled = false;
+            }
+        }
 
         // Guardar configuración
         document.getElementById('configForm').addEventListener('submit', async function(e) {

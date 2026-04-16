@@ -1,6 +1,6 @@
 """
-Configuración de la base de datos PostgreSQL
-Maneja la conexión y modelos de la base de datos
+Configuración de la base de datos SQLite local
+Guarda los datos en el equipo donde está instalado el programa
 """
 
 import os
@@ -12,21 +12,15 @@ class Base(DeclarativeBase):
 
 db = SQLAlchemy(model_class=Base)
 
+# Ruta de la carpeta de datos local (relativa al directorio del proyecto)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+
 def init_db(app):
-    """Inicializa la base de datos con la aplicación Flask"""
-    
-    # Obtener URL de la base de datos desde variable de entorno
-    # En Render, esto se configura automáticamente cuando agregas PostgreSQL
-    database_url = os.environ.get('DATABASE_URL')
-    
-    # Fix para Render: cambiar postgres:// a postgresql://
-    if database_url and database_url.startswith('postgres://'):
-        database_url = database_url.replace('postgres://', 'postgresql://', 1)
-    
-    # Fallback para desarrollo local
-    if not database_url:
-        database_url = 'sqlite:///data/boletas.db'
-        os.makedirs('data', exist_ok=True)
+    """Inicializa la base de datos SQLite local"""
+
+    os.makedirs(DATA_DIR, exist_ok=True)
+    database_url = f'sqlite:///{os.path.join(DATA_DIR, "boletas.db")}'
     
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
