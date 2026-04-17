@@ -4,6 +4,7 @@ Guarda los datos en el equipo donde está instalado el programa
 """
 
 import os
+import sys
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 
@@ -12,9 +13,17 @@ class Base(DeclarativeBase):
 
 db = SQLAlchemy(model_class=Base)
 
-# Ruta de la carpeta de datos local (relativa al directorio del proyecto)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(BASE_DIR, 'data')
+# Ruta de la carpeta de datos:
+# - Empaquetado (PyInstaller): usa AppData del usuario para que sea escribible
+# - Desarrollo: usa la carpeta 'data/' del proyecto
+if getattr(sys, 'frozen', False):
+    DATA_DIR = os.path.join(
+        os.environ.get('APPDATA', os.path.expanduser('~')),
+        'BoletasV1', 'data'
+    )
+else:
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    DATA_DIR = os.path.join(BASE_DIR, 'data')
 
 def init_db(app):
     """Inicializa la base de datos SQLite local"""

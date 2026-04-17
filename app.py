@@ -8,11 +8,20 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import os
+import sys
 import json
 import base64
 import io
 import zipfile
 from datetime import datetime
+
+# Directorio base de recursos (templates, static):
+# - Empaquetado: sys._MEIPASS contiene los archivos extraídos por PyInstaller
+# - Desarrollo: directorio del propio app.py
+if getattr(sys, 'frozen', False):
+    _BASE_APP_DIR = sys._MEIPASS
+else:
+    _BASE_APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Importar base de datos
 from config.database import db, init_db
@@ -24,7 +33,11 @@ from models.boleta_liquidacion import BoletaLiquidacion
 from models.empleado_db import EmpleadoManager
 from generators.pdf_generator import PDFGenerator
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder=os.path.join(_BASE_APP_DIR, 'templates'),
+    static_folder=os.path.join(_BASE_APP_DIR, 'static'),
+)
 app.config['SECRET_KEY'] = 'boletas-v1-secret-key-2025'
 
 # Carpeta de datos local (dentro del directorio del proyecto)
@@ -36,8 +49,10 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max (para importar a
 # Crear directorios necesarios
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
-os.makedirs('static/uploads', exist_ok=True)
 os.makedirs(DATA_DIR, exist_ok=True)
+# static/uploads es legacy (logo en BD); solo crear en desarrollo, no en modo empaquetado
+if not getattr(sys, 'frozen', False):
+    os.makedirs(os.path.join(_BASE_APP_DIR, 'static', 'uploads'), exist_ok=True)
 
 # Inicializar base de datos PostgreSQL
 init_db(app)
@@ -265,7 +280,9 @@ def serve_upload(filename):
         return serve_logo()
     
     try:
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        # Prevenir path traversal: solo usar el nombre base del archivo
+        safe_name = os.path.basename(secure_filename(filename))
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], safe_name)
         if os.path.exists(filepath):
             return send_file(filepath)
         else:
@@ -368,13 +385,13 @@ def generar_boleta_mensual():
         boleta.reposiciones = float(data.get('anticipos', data.get('reposiciones', 0)))
         boleta.otros_egresos = float(data.get('otros_egresos', 0))
         
-        # Fecha, número y método de pago
+        # Fecha y método de pago (validar antes de consumir número)
         fecha_str = data.get('fecha_emision', datetime.now().strftime("%d/%m/%Y"))
         boleta.fecha_emision = datetime.strptime(fecha_str, "%d/%m/%Y")
-        boleta.numero_boleta = empresa_config.get_next_numero_boleta()
         boleta.metodo_pago = data.get('metodo_pago', 'EFECTIVO')
         
-        # Generar PDF
+        # Generar PDF (número se asigna justo antes para no consumirlo si hay error previo)
+        boleta.numero_boleta = empresa_config.get_next_numero_boleta()
         pdf_gen = PDFGenerator(empresa_config, app.config['OUTPUT_FOLDER'])
         filename = pdf_gen.generar_boleta_mensual(boleta)
         
@@ -406,13 +423,13 @@ def generar_boleta_aguinaldo():
         boleta.promedio_ultimos_3_pagos = float(data.get('promedio_ultimos_3_pagos', 0))
         boleta.otros = float(data.get('otros', 0))
         
-        # Fecha, número y método de pago
+        # Fecha y método de pago (validar antes de consumir número)
         fecha_str = data.get('fecha_emision', datetime.now().strftime("%d/%m/%Y"))
         boleta.fecha_emision = datetime.strptime(fecha_str, "%d/%m/%Y")
-        boleta.numero_boleta = empresa_config.get_next_numero_boleta()
         boleta.metodo_pago = data.get('metodo_pago', 'EFECTIVO')
         
-        # Generar PDF
+        # Generar PDF (número se asigna justo antes para no consumirlo si hay error previo)
+        boleta.numero_boleta = empresa_config.get_next_numero_boleta()
         pdf_gen = PDFGenerator(empresa_config, app.config['OUTPUT_FOLDER'])
         filename = pdf_gen.generar_boleta_aguinaldo(boleta)
         
@@ -459,13 +476,13 @@ def generar_boleta_liquidacion():
         # Nota adicional (máx 300 chars por seguridad)
         boleta.nota = str(data.get('nota', ''))[:300]
         
-        # Fecha, número y método de pago
+        # Fecha y método de pago (validar antes de consumir número)
         fecha_str = data.get('fecha_emision', datetime.now().strftime("%d/%m/%Y"))
         boleta.fecha_emision = datetime.strptime(fecha_str, "%d/%m/%Y")
-        boleta.numero_boleta = empresa_config.get_next_numero_boleta()
         boleta.metodo_pago = data.get('metodo_pago', 'EFECTIVO')
         
-        # Generar PDF
+        # Generar PDF (número se asigna justo antes para no consumirlo si hay error previo)
+        boleta.numero_boleta = empresa_config.get_next_numero_boleta()
         pdf_gen = PDFGenerator(empresa_config, app.config['OUTPUT_FOLDER'])
         filename = pdf_gen.generar_boleta_liquidacion(boleta)
         
@@ -483,11 +500,49 @@ def generar_boleta_liquidacion():
 def download_pdf(filename):
     """Descarga un PDF generado"""
     try:
-        filepath = os.path.join(app.config['OUTPUT_FOLDER'], filename)
+        # Prevenir path traversal: solo usar el nombre base del archivo
+        safe_name = os.path.basename(secure_filename(filename))
+        filepath = os.path.join(app.config['OUTPUT_FOLDER'], safe_name)
         if os.path.exists(filepath):
             return send_file(filepath, as_attachment=True)
         else:
             return jsonify({'success': False, 'message': 'Archivo no encontrado'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+@app.route('/api/boleta/mensual/blank', methods=['GET'])
+@login_required
+def descargar_boleta_mensual_blank():
+    """Descarga boleta mensual en blanco para llenar a mano"""
+    try:
+        numero_boleta = empresa_config.get_next_numero_boleta()
+        pdf_gen = PDFGenerator(empresa_config, app.config['OUTPUT_FOLDER'])
+        filename = pdf_gen.generar_boleta_mensual_blank(numero_boleta)
+        return send_file(filename, as_attachment=True, download_name=os.path.basename(filename))
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+@app.route('/api/boleta/aguinaldo/blank', methods=['GET'])
+@login_required
+def descargar_boleta_aguinaldo_blank():
+    """Descarga boleta de aguinaldo en blanco para llenar a mano"""
+    try:
+        numero_boleta = empresa_config.get_next_numero_boleta()
+        pdf_gen = PDFGenerator(empresa_config, app.config['OUTPUT_FOLDER'])
+        filename = pdf_gen.generar_boleta_aguinaldo_blank(numero_boleta)
+        return send_file(filename, as_attachment=True, download_name=os.path.basename(filename))
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+@app.route('/api/boleta/liquidacion/blank', methods=['GET'])
+@login_required
+def descargar_boleta_liquidacion_blank():
+    """Descarga boleta de liquidación en blanco para llenar a mano"""
+    try:
+        numero_boleta = empresa_config.get_next_numero_boleta()
+        pdf_gen = PDFGenerator(empresa_config, app.config['OUTPUT_FOLDER'])
+        filename = pdf_gen.generar_boleta_liquidacion_blank(numero_boleta)
+        return send_file(filename, as_attachment=True, download_name=os.path.basename(filename))
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
 
@@ -759,8 +814,10 @@ def importar_datos():
             'message': f'Importación completada: {empleados_importados} empleados nuevos, {empleados_actualizados} actualizados.',
         })
     except json.JSONDecodeError:
+        db.session.rollback()
         return jsonify({'success': False, 'message': 'El archivo no es un JSON válido'}), 400
     except Exception as e:
+        db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
 
 if __name__ == '__main__':

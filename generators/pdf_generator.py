@@ -615,8 +615,6 @@ class PDFGenerator:
         col_w = [1.3*inch, 2.45*inch, 1.3*inch, 2.45*inch]
         tabla_empleado = Table(data_empleado, colWidths=col_w)
         tabla_empleado.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#34495E')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('SPAN', (0, 0), (-1, 0)),
             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
@@ -626,12 +624,11 @@ class PDFGenerator:
             ('TOPPADDING', (0, 0), (-1, 0), 5),
             ('TOPPADDING', (0, 1), (-1, -1), 2),
             ('BOTTOMPADDING', (0, 1), (-1, -1), 2),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
             ('GRID', (0, 0), (-1, -1), 0.8, colors.black),
-            # Etiquetas en negrita (col 0 y col 2)
+            ('BOX', (0, 0), (-1, -1), 1.5, colors.HexColor('#34495E')),
+            ('LINEBELOW', (0, 0), (-1, 0), 1.2, colors.HexColor('#34495E')),
             ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
             ('FONTNAME', (2, 1), (2, -1), 'Helvetica-Bold'),
-            # Última fila: método de pago abarca columnas 1-3
             ('SPAN', (1, -1), (-1, -1)),
         ]))
         elements.append(tabla_empleado)
@@ -645,15 +642,14 @@ class PDFGenerator:
         ]
         tabla_rem = Table(data_rem, colWidths=[3.75*inch, 3.75*inch])
         tabla_rem.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#8E44AD')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, -1), 8),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 4), ('TOPPADDING', (0, 0), (-1, 0), 4),
             ('TOPPADDING', (0, 1), (-1, -1), 2), ('BOTTOMPADDING', (0, 1), (-1, -1), 2),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.lavender),
             ('GRID', (0, 0), (-1, -1), 0.8, colors.black),
+            ('BOX', (0, 0), (-1, -1), 1.5, colors.HexColor('#8E44AD')),
+            ('LINEBELOW', (0, 0), (-1, 0), 1.2, colors.HexColor('#8E44AD')),
         ]))
         elements.append(tabla_rem)
 
@@ -669,17 +665,15 @@ class PDFGenerator:
         ]
         tabla_ben = Table(data_ben, colWidths=[2.95*inch, 0.8*inch])
         tabla_ben.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.Color(0.153, 0.682, 0.376, alpha=0.9)),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
             ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, -1), 8),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 4), ('TOPPADDING', (0, 0), (-1, 0), 4),
             ('TOPPADDING', (0, 1), (-1, -1), 2), ('BOTTOMPADDING', (0, 1), (-1, -1), 2),
-            ('BACKGROUND', (0, 1), (-1, -2), colors.Color(0.565, 0.933, 0.565, alpha=0.5)),
-            ('BACKGROUND', (0, -1), (-1, -1), colors.Color(0.118, 0.518, 0.286, alpha=0.5)),
-            ('GRID', (0, 0), (-1, -1), 0.8, colors.black),
+            ('GRID', (0, 0), (-1, -1), 0.8, colors.HexColor('#27AE60')),
+            ('BOX', (0, 0), (-1, -1), 1.5, colors.HexColor('#27AE60')),
+            ('LINEBELOW', (0, 0), (-1, 0), 1.2, colors.HexColor('#27AE60')),
         ]))
 
         # Deducciones
@@ -693,17 +687,15 @@ class PDFGenerator:
         ]
         tabla_ded = Table(data_ded, colWidths=[2.95*inch, 0.8*inch])
         tabla_ded.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.Color(0.906, 0.298, 0.235, alpha=0.8)),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
             ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, -1), 8),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 4), ('TOPPADDING', (0, 0), (-1, 0), 4),
             ('TOPPADDING', (0, 1), (-1, -1), 2), ('BOTTOMPADDING', (0, 1), (-1, -1), 2),
-            ('BACKGROUND', (0, 1), (-1, -2), colors.Color(0.941, 0.502, 0.502, alpha=0.5)),
-            ('BACKGROUND', (0, -1), (-1, -1), colors.Color(0.753, 0.224, 0.169, alpha=0.5)),
-            ('GRID', (0, 0), (-1, -1), 0.8, colors.black),
+            ('GRID', (0, 0), (-1, -1), 0.8, colors.HexColor('#E74C3C')),
+            ('BOX', (0, 0), (-1, -1), 1.5, colors.HexColor('#E74C3C')),
+            ('LINEBELOW', (0, 0), (-1, 0), 1.2, colors.HexColor('#E74C3C')),
         ]))
 
         # Beneficios + Deducciones en la misma fila → 3.75" + 3.75" = 7.5"
@@ -723,15 +715,14 @@ class PDFGenerator:
         data_liquido = [['LÍQUIDO PAGABLE', f"{boleta.calcular_liquido_pagable():.2f} Bs."]]
         tabla_liquido = Table(data_liquido, colWidths=[5.5*inch, 2.0*inch])
         tabla_liquido.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#F25838')),
-            ('TEXTCOLOR', (0, 0), (-1, -1), colors.white),
             ('ALIGN', (0, 0), (0, -1), 'LEFT'),
             ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
             ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, -1), 12),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
             ('TOPPADDING', (0, 0), (-1, -1), 8),
-            ('GRID', (0, 0), (-1, -1), 1.5, colors.black),
+            ('BOX', (0, 0), (-1, -1), 2.0, colors.HexColor('#F25838')),
+            ('GRID', (0, 0), (-1, -1), 1.5, colors.HexColor('#F25838')),
         ]))
         elements.append(tabla_liquido)
         elements.append(Spacer(1, 0.1*inch))
@@ -745,7 +736,6 @@ class PDFGenerator:
         ]
         tabla_nota = Table(data_nota, colWidths=[7.5*inch], rowHeights=[None, 2.0*inch])
         tabla_nota.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#ECF0F1')),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, 0), 9),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 3), ('TOPPADDING', (0, 0), (-1, 0), 3),
@@ -757,6 +747,479 @@ class PDFGenerator:
         elements.append(Spacer(1, 1.5*inch))
 
         # ── Firmas ────────────────────────────────────────────────────────────
+        data_firmas = [
+            ['_____________________', '', '_____________________'],
+            ['Firma Empleador', '', 'Firma Empleado'],
+            ['Entregue Conforme', '', 'Recibí Conforme'],
+        ]
+        tabla_firmas = Table(data_firmas, colWidths=[3.0*inch, 1.5*inch, 3.0*inch])
+        tabla_firmas.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, -1), 'CENTER'),
+            ('ALIGN', (2, 0), (2, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('FONTSIZE', (0, 2), (-1, 2), 8),
+            ('TOPPADDING', (0, 0), (-1, 0), 16),
+            ('TOPPADDING', (0, 2), (-1, 2), 1),
+        ]))
+        elements.append(tabla_firmas)
+
+        doc.build(elements)
+        return filename
+
+    # ── MÉTODOS PARA PDFs EN BLANCO ─────────────────────────────────────────
+
+    def _blank_line(self, width=1.8*inch):
+        """Retorna cadena vacía para campos en blanco"""
+        return ""
+
+    def generar_boleta_mensual_blank(self, numero_boleta):
+        """Genera PDF en blanco para boleta de pago mensual (para llenar a mano)"""
+        from datetime import datetime as dt
+        B = self._blank_line
+        filename = os.path.join(self.output_dir, f"{numero_boleta}_Mensual_BLANK.pdf")
+        doc = SimpleDocTemplate(filename, pagesize=letter,
+                                topMargin=0.3*inch, bottomMargin=0.3*inch,
+                                leftMargin=0.5*inch, rightMargin=0.5*inch)
+        elements = []
+        styles = getSampleStyleSheet()
+
+        title_style = ParagraphStyle('TitleStyle', parent=styles['Normal'],
+                                     fontSize=14, textColor=colors.HexColor('#2C3E50'),
+                                     alignment=TA_CENTER, fontName='Helvetica-Bold')
+        empresa_style = ParagraphStyle('EmpresaStyle', parent=styles['Normal'],
+                                       fontSize=7, alignment=TA_RIGHT, leading=9)
+
+        empresa = self.empresa_config.get_empresa_data()
+
+        # Logo
+        logo = ''
+        if self.empresa_config.logo_exists():
+            try:
+                logo_data, logo_mimetype = self.empresa_config.get_logo_data()
+                if logo_data:
+                    from PIL import Image as PILImage
+                    img_stream = BytesIO(logo_data)
+                    img = PILImage.open(img_stream)
+                    aspect_ratio = img.width / img.height
+                    logo_height = 2.0 * inch
+                    logo_width = logo_height * aspect_ratio
+                    logo_stream = BytesIO(logo_data)
+                    logo = Image(logo_stream, width=logo_width, height=logo_height)
+            except Exception as e:
+                print(f"Error al cargar logo: {e}")
+
+        titulo = Paragraph(f"<b>BOLETA DE PAGO</b><br/><font size=9>No. {numero_boleta}</font>", title_style)
+        datos_empresa = Paragraph(
+            f"<b>{empresa['nombre']}</b><br/>"
+            f"{empresa.get('eslogan', '')}<br/>"
+            f"NIT: {empresa.get('nit', 'N/A')}<br/>"
+            f"Tel: {empresa.get('telefono', 'N/A')}<br/>"
+            f"{empresa.get('direccion', 'N/A')}", empresa_style)
+
+        header_table = Table([[logo, titulo, datos_empresa]], colWidths=[2.5*inch, 3*inch, 2.5*inch])
+        header_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+            ('ALIGN', (1, 0), (1, 0), 'CENTER'),
+            ('ALIGN', (2, 0), (2, 0), 'RIGHT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        elements.append(header_table)
+        elements.append(Spacer(1, 0.08*inch))
+
+        data_empleado = [
+            ['Nombre:', B(), 'C.I.:', B()],
+            ['Cargo:', B(), 'Fecha:', B()],
+            ['Período:', B(), 'Método Pago:', B()],
+            ['Rango:', B(), '', ''],
+        ]
+        tabla_empleado = Table(data_empleado, colWidths=[1.0*inch, 2.53*inch, 1.15*inch, 1.82*inch])
+        tabla_empleado.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTNAME', (2, 0), (2, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 0.8, colors.black),
+            ('BOX', (0, 0), (-1, -1), 1.2, colors.black),
+            ('TOPPADDING', (0, 0), (-1, -1), 2),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+        ]))
+        elements.append(tabla_empleado)
+        elements.append(Spacer(1, 0.12*inch))
+
+        data_combinada = [
+            ['INGRESOS', 'Bs.', 'EGRESOS', 'Bs.'],
+            ['Haber Básico', B(), 'Faltas', B()],
+            ['Horas Extra', B(), 'Retrasos', B()],
+            ['Bono Antigüedad', B(), 'Anticipos', B()],
+            ['Otros Ingresos', B(), 'Otros Egresos', B()],
+            ['TOTAL INGRESOS', B(), 'TOTAL EGRESOS', B()],
+        ]
+        tabla_combinada = Table(data_combinada, colWidths=[2.166*inch, 1.084*inch, 2.166*inch, 1.084*inch])
+        tabla_combinada.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (2, 0), (3, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, -1), (1, -1), 'Helvetica-Bold'),
+            ('FONTNAME', (2, -1), (3, -1), 'Helvetica-Bold'),
+            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+            ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+            ('ALIGN', (2, 0), (2, -1), 'LEFT'),
+            ('ALIGN', (3, 0), (3, -1), 'RIGHT'),
+            ('FONTSIZE', (0, 0), (-1, 0), 8),
+            ('FONTSIZE', (0, 1), (-1, -1), 7),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 4), ('TOPPADDING', (0, 0), (-1, 0), 4),
+            ('TOPPADDING', (0, 1), (-1, -1), 1.5), ('BOTTOMPADDING', (0, 1), (-1, -1), 1.5),
+            ('BOX', (0, 0), (1, -1), 1.2, colors.HexColor('#2ECC71')),
+            ('GRID', (0, 0), (1, -1), 0.5, colors.HexColor('#2ECC71')),
+            ('BOX', (2, 0), (3, -1), 1.2, colors.HexColor('#E74C3C')),
+            ('GRID', (2, 0), (3, -1), 0.5, colors.HexColor('#E74C3C')),
+        ]))
+        elements.append(tabla_combinada)
+        elements.append(Spacer(1, 0))
+
+        data_liquido = [['LÍQUIDO PAGABLE', B()]]
+        tabla_liquido = Table(data_liquido, colWidths=[4.5*inch, 2*inch])
+        tabla_liquido.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+            ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6), ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('GRID', (0, 0), (-1, -1), 1.5, colors.black),
+        ]))
+        elements.append(tabla_liquido)
+        elements.append(Spacer(1, 0.22*inch))
+
+        data_firmas = [
+            ['_____________________', '', '_____________________'],
+            ['Firma Empleador', '', 'Firma Empleado'],
+            ['Entregue Conforme', '', 'Recibí Conforme'],
+        ]
+        tabla_firmas = Table(data_firmas, colWidths=[3.0*inch, 1.34*inch, 3.0*inch])
+        tabla_firmas.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, -1), 'CENTER'),
+            ('ALIGN', (2, 0), (2, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 1), (-1, 1), 7),
+            ('FONTSIZE', (0, 2), (-1, 2), 6),
+            ('TOPPADDING', (0, 0), (-1, 0), 8), ('TOPPADDING', (0, 1), (-1, 1), 2),
+            ('TOPPADDING', (0, 2), (-1, 2), 0), ('BOTTOMPADDING', (0, 1), (-1, 1), 1),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10), ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+        ]))
+        elements.append(tabla_firmas)
+
+        doc.build(elements)
+        return filename
+
+    def generar_boleta_aguinaldo_blank(self, numero_boleta):
+        """Genera PDF en blanco para boleta de aguinaldo (para llenar a mano)"""
+        B = self._blank_line
+        filename = os.path.join(self.output_dir, f"{numero_boleta}_Aguinaldo_BLANK.pdf")
+        doc = SimpleDocTemplate(filename, pagesize=letter,
+                                topMargin=0.3*inch, bottomMargin=0.3*inch,
+                                leftMargin=0.5*inch, rightMargin=0.5*inch)
+        elements = []
+        styles = getSampleStyleSheet()
+
+        title_style = ParagraphStyle('TitleStyle', parent=styles['Normal'],
+                                     fontSize=14, textColor=colors.HexColor('#000000'),
+                                     alignment=TA_CENTER, fontName='Helvetica-Bold')
+        empresa_style = ParagraphStyle('EmpresaStyle', parent=styles['Normal'],
+                                       fontSize=7, alignment=TA_RIGHT, leading=9)
+
+        empresa = self.empresa_config.get_empresa_data()
+
+        logo = ''
+        if self.empresa_config.logo_exists():
+            try:
+                logo_data, logo_mimetype = self.empresa_config.get_logo_data()
+                if logo_data:
+                    from PIL import Image as PILImage
+                    img_stream = BytesIO(logo_data)
+                    img = PILImage.open(img_stream)
+                    aspect_ratio = img.width / img.height
+                    logo_height = 2.0 * inch
+                    logo_width = logo_height * aspect_ratio
+                    logo_stream = BytesIO(logo_data)
+                    logo = Image(logo_stream, width=logo_width, height=logo_height)
+            except Exception as e:
+                print(f"Error al cargar logo: {e}")
+
+        titulo = Paragraph(f"<b>BOLETA DE AGUINALDO</b><br/><font size=9>No. {numero_boleta}</font>", title_style)
+        datos_empresa = Paragraph(
+            f"<b>{empresa['nombre']}</b><br/>"
+            f"{empresa.get('eslogan', '')}<br/>"
+            f"NIT: {empresa.get('nit', 'N/A')}<br/>"
+            f"Tel: {empresa.get('telefono', 'N/A')}<br/>"
+            f"{empresa.get('direccion', 'N/A')}", empresa_style)
+
+        header_table = Table([[logo, titulo, datos_empresa]], colWidths=[2.5*inch, 3*inch, 2.5*inch])
+        header_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+            ('ALIGN', (1, 0), (1, 0), 'CENTER'),
+            ('ALIGN', (2, 0), (2, 0), 'RIGHT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        elements.append(header_table)
+        elements.append(Spacer(1, 0.08*inch))
+
+        data_empleado = [
+            ['Nombre:', B(), 'C.I.:', B()],
+            ['Cargo:', B(), 'Año:', B()],
+            ['Período:', B(), 'Fecha:', B()],
+            ['Tiempo:', B(), 'Método Pago:', B()],
+        ]
+        tabla_empleado = Table(data_empleado, colWidths=[1.0*inch, 2.53*inch, 1.15*inch, 1.82*inch])
+        tabla_empleado.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTNAME', (2, 0), (2, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 0.8, colors.black),
+            ('BOX', (0, 0), (-1, -1), 1.2, colors.black),
+            ('TOPPADDING', (0, 0), (-1, -1), 2),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+        ]))
+        elements.append(tabla_empleado)
+        elements.append(Spacer(1, 0.12*inch))
+
+        data_calculo = [
+            ['CÁLCULO DEL AGUINALDO', 'Bs.'],
+            ['Sueldo Promedio', B()],
+            ['Meses completos: (÷12) × ___', B()],
+            ['Días adicionales: (÷360) × ___', B()],
+            ['Subtotal Aguinaldo', B()],
+            ['Otros conceptos', B()],
+            ['TOTAL AGUINALDO', B()],
+        ]
+        tabla_calculo = Table(data_calculo, colWidths=[5.0*inch, 1.5*inch])
+        tabla_calculo.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+            ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 8),
+            ('FONTSIZE', (0, 1), (-1, -2), 7),
+            ('FONTSIZE', (0, -1), (-1, -1), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 4), ('TOPPADDING', (0, 0), (-1, 0), 4),
+            ('TOPPADDING', (0, 1), (-1, -1), 1.5), ('BOTTOMPADDING', (0, 1), (-1, -1), 1.5),
+            ('BOX', (0, 0), (-1, -1), 1.2, colors.HexColor('#F39C12')),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#F39C12')),
+        ]))
+        elements.append(tabla_calculo)
+        elements.append(Spacer(1, 0.12*inch))
+
+        data_firmas = [
+            ['____________________________', '', '____________________________'],
+            ['Firma Empleador', '', 'Firma Empleado'],
+            ['Entregue Conforme', '', 'Recibí Conforme'],
+        ]
+        tabla_firmas = Table(data_firmas, colWidths=[3.0*inch, 1.34*inch, 3.0*inch])
+        tabla_firmas.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, -1), 'CENTER'),
+            ('ALIGN', (2, 0), (2, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 1), (-1, 1), 7),
+            ('FONTSIZE', (0, 2), (-1, 2), 6),
+            ('TOPPADDING', (0, 0), (-1, 0), 8), ('TOPPADDING', (0, 1), (-1, 1), 2),
+            ('TOPPADDING', (0, 2), (-1, 2), 0), ('BOTTOMPADDING', (0, 1), (-1, 1), 1),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10), ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+        ]))
+        elements.append(tabla_firmas)
+
+        doc.build(elements)
+        return filename
+
+    def generar_boleta_liquidacion_blank(self, numero_boleta):
+        """Genera PDF en blanco para boleta de liquidación (para llenar a mano)"""
+        B = self._blank_line
+        nota_style = ParagraphStyle('NotaStyle', fontSize=8, leading=11)
+        filename = os.path.join(self.output_dir, f"{numero_boleta}_Liquidacion_BLANK.pdf")
+        doc = SimpleDocTemplate(filename, pagesize=legal,
+                                topMargin=0.35*inch, bottomMargin=0.35*inch,
+                                leftMargin=0.5*inch, rightMargin=0.5*inch)
+        elements = []
+        styles = getSampleStyleSheet()
+
+        title_style = ParagraphStyle('LiqTitle', parent=styles['Normal'],
+                                     fontSize=13, textColor=colors.HexColor('#2C3E50'),
+                                     alignment=TA_CENTER, fontName='Helvetica-Bold', spaceAfter=2)
+        empresa_style = ParagraphStyle('EmpresaStyle', parent=styles['Normal'],
+                                       fontSize=7, alignment=TA_RIGHT, leading=9)
+
+        empresa = self.empresa_config.get_empresa_data()
+
+        logo = ''
+        if self.empresa_config.logo_exists():
+            try:
+                logo_data, logo_mimetype = self.empresa_config.get_logo_data()
+                if logo_data:
+                    from PIL import Image as PILImage
+                    img_stream = BytesIO(logo_data)
+                    img = PILImage.open(img_stream)
+                    aspect_ratio = img.width / img.height
+                    logo_height = 1.1 * inch
+                    logo_width = logo_height * aspect_ratio
+                    logo_stream = BytesIO(logo_data)
+                    logo = Image(logo_stream, width=logo_width, height=logo_height)
+            except Exception as e:
+                print(f"Error al cargar logo: {e}")
+
+        titulo_header = Paragraph(
+            f"<b>BOLETA DE LIQUIDACIÓN</b><br/><font size=9>No. {numero_boleta}</font>", title_style)
+        datos_empresa = Paragraph(
+            f"<b>{empresa['nombre']}</b><br/>"
+            f"{empresa.get('eslogan', '')}<br/>"
+            f"NIT: {empresa.get('nit', 'N/A')}<br/>"
+            f"Tel: {empresa.get('telefono', 'N/A')}<br/>"
+            f"{empresa.get('direccion', 'N/A')}", empresa_style)
+
+        header_table = Table([[logo, titulo_header, datos_empresa]],
+                             colWidths=[2.0*inch, 3.5*inch, 2.0*inch])
+        header_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+            ('ALIGN', (1, 0), (1, 0), 'CENTER'),
+            ('ALIGN', (2, 0), (2, 0), 'RIGHT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('LINEBELOW', (0, 0), (-1, 0), 1.2, colors.HexColor('#2C3E50')),
+        ]))
+        elements.append(header_table)
+        elements.append(Spacer(1, 0.1*inch))
+
+        col_w = [1.3*inch, 2.45*inch, 1.3*inch, 2.45*inch]
+        data_empleado = [
+            ['DATOS DEL TRABAJADOR', '', '', ''],
+            ['Nombre Completo:', B(), 'C.I.:', B()],
+            ['Cargo:', B(), 'Domicilio:', B()],
+            ['Fecha de Ingreso:', B(), 'Fecha de Retiro:', B()],
+            ['Tiempo de Servicio:', B(), 'Fecha de Emisión:', B()],
+            ['Método de Pago:', B(), '', ''],
+        ]
+        tabla_empleado = Table(data_empleado, colWidths=col_w)
+        tabla_empleado.setStyle(TableStyle([
+            ('SPAN', (0, 0), (-1, 0)),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('FONTSIZE', (0, 1), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 5), ('TOPPADDING', (0, 0), (-1, 0), 5),
+            ('TOPPADDING', (0, 1), (-1, -1), 2), ('BOTTOMPADDING', (0, 1), (-1, -1), 2),
+            ('GRID', (0, 0), (-1, -1), 0.8, colors.black),
+            ('BOX', (0, 0), (-1, -1), 1.5, colors.HexColor('#34495E')),
+            ('LINEBELOW', (0, 0), (-1, 0), 1.2, colors.HexColor('#34495E')),
+            ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
+            ('FONTNAME', (2, 1), (2, -1), 'Helvetica-Bold'),
+            ('SPAN', (1, -1), (-1, -1)),
+        ]))
+        elements.append(tabla_empleado)
+        elements.append(Spacer(1, 0.1*inch))
+
+        data_rem = [
+            ['REMUNERACIONES', 'Bs.'],
+            ['Último Sueldo', B()],
+            ['Promedio últimos 3 sueldos', B()],
+        ]
+        tabla_rem = Table(data_rem, colWidths=[3.75*inch, 3.75*inch])
+        tabla_rem.setStyle(TableStyle([
+            ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 4), ('TOPPADDING', (0, 0), (-1, 0), 4),
+            ('TOPPADDING', (0, 1), (-1, -1), 2), ('BOTTOMPADDING', (0, 1), (-1, -1), 2),
+            ('GRID', (0, 0), (-1, -1), 0.8, colors.black),
+            ('BOX', (0, 0), (-1, -1), 1.5, colors.HexColor('#8E44AD')),
+            ('LINEBELOW', (0, 0), (-1, 0), 1.2, colors.HexColor('#8E44AD')),
+        ]))
+        elements.append(tabla_rem)
+
+        data_ben = [
+            ['BENEFICIOS SOCIALES', 'Bs.'],
+            ['Indemnización', B()],
+            ['Aguinaldo', B()],
+            ['Vacaciones', B()],
+            ['Otros Beneficios', B()],
+            ['TOTAL BENEFICIOS', B()],
+        ]
+        tabla_ben = Table(data_ben, colWidths=[2.95*inch, 0.8*inch])
+        tabla_ben.setStyle(TableStyle([
+            ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 4), ('TOPPADDING', (0, 0), (-1, 0), 4),
+            ('TOPPADDING', (0, 1), (-1, -1), 2), ('BOTTOMPADDING', (0, 1), (-1, -1), 2),
+            ('GRID', (0, 0), (-1, -1), 0.8, colors.HexColor('#27AE60')),
+            ('BOX', (0, 0), (-1, -1), 1.5, colors.HexColor('#27AE60')),
+            ('LINEBELOW', (0, 0), (-1, 0), 1.2, colors.HexColor('#27AE60')),
+        ]))
+
+        data_ded = [
+            ['DEDUCCIONES', 'Bs.'],
+            ['Anticipos', B()],
+            ['Préstamos', B()],
+            ['Otras Deducciones', B()],
+            ['', ''],
+            ['TOTAL DEDUCCIONES', B()],
+        ]
+        tabla_ded = Table(data_ded, colWidths=[2.95*inch, 0.8*inch])
+        tabla_ded.setStyle(TableStyle([
+            ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 4), ('TOPPADDING', (0, 0), (-1, 0), 4),
+            ('TOPPADDING', (0, 1), (-1, -1), 2), ('BOTTOMPADDING', (0, 1), (-1, -1), 2),
+            ('GRID', (0, 0), (-1, -1), 0.8, colors.HexColor('#E74C3C')),
+            ('BOX', (0, 0), (-1, -1), 1.5, colors.HexColor('#E74C3C')),
+            ('LINEBELOW', (0, 0), (-1, 0), 1.2, colors.HexColor('#E74C3C')),
+        ]))
+
+        tabla_duo = Table([[tabla_ben, tabla_ded]], colWidths=[3.75*inch, 3.75*inch])
+        tabla_duo.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 0), ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+            ('TOPPADDING', (0, 0), (-1, -1), 0), ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+        ]))
+        elements.append(tabla_duo)
+        elements.append(Spacer(1, 0.1*inch))
+
+        data_liquido = [['LÍQUIDO PAGABLE', B()]]
+        tabla_liquido = Table(data_liquido, colWidths=[5.5*inch, 2.0*inch])
+        tabla_liquido.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+            ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8), ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOX', (0, 0), (-1, -1), 2.0, colors.HexColor('#F25838')),
+            ('GRID', (0, 0), (-1, -1), 1.5, colors.HexColor('#F25838')),
+        ]))
+        elements.append(tabla_liquido)
+        elements.append(Spacer(1, 0.1*inch))
+
+        saltos = '<br/>' * 10
+        data_nota = [
+            ['NOTA'],
+            [Paragraph(saltos, nota_style)],
+        ]
+        tabla_nota = Table(data_nota, colWidths=[7.5*inch], rowHeights=[None, 2.0*inch])
+        tabla_nota.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 3), ('TOPPADDING', (0, 0), (-1, 0), 3),
+            ('BOTTOMPADDING', (0, 1), (-1, 1), 5), ('TOPPADDING', (0, 1), (-1, 1), 4),
+            ('FONTSIZE', (0, 1), (-1, 1), 8),
+            ('GRID', (0, 0), (-1, -1), 0.8, colors.black),
+        ]))
+        elements.append(tabla_nota)
+        elements.append(Spacer(1, 1.5*inch))
+
         data_firmas = [
             ['_____________________', '', '_____________________'],
             ['Firma Empleador', '', 'Firma Empleado'],

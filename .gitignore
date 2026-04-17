@@ -37,5 +37,10 @@ config/settings.json
 .DS_Store
 Thumbs.db
 
+# PyInstaller - carpetas de compilación (no subir al repo)
+build/
+dist/
+build_log.txt
+
 # Git
 .git/
