@@ -99,3 +99,31 @@ class UsuarioSistema(db.Model):
     respuesta_5   = db.Column(db.String(200), nullable=False)
 
     created_at    = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class DocumentoEmitido(db.Model):
+    """Registro de documentos/boletas emitidas"""
+    __tablename__ = 'documentos_emitidos'
+
+    id               = db.Column(db.Integer, primary_key=True)
+    empleado_id      = db.Column(db.Integer, nullable=True)
+    empleado_ci      = db.Column(db.String(50), nullable=False)
+    empleado_nombre  = db.Column(db.String(200), nullable=False)
+    tipo_documento   = db.Column(db.String(50), nullable=False)   # mensual | aguinaldo | liquidacion
+    numero_boleta    = db.Column(db.String(50), nullable=False)
+    filename         = db.Column(db.String(500), nullable=False)
+    fecha_emision    = db.Column(db.String(20), nullable=False)
+    created_at       = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id':              self.id,
+            'empleado_id':     self.empleado_id,
+            'empleado_ci':     self.empleado_ci,
+            'empleado_nombre': self.empleado_nombre,
+            'tipo_documento':  self.tipo_documento,
+            'numero_boleta':   self.numero_boleta,
+            'filename':        self.filename,
+            'fecha_emision':   self.fecha_emision,
+            'created_at':      self.created_at.strftime('%d/%m/%Y %H:%M') if self.created_at else '',
+        }

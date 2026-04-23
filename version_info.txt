@@ -1,7 +1,7 @@
 VSVersionInfo(
   ffi=FixedFileInfo(
-    filevers=(1, 0, 0, 0),
-    prodvers=(1, 0, 0, 0),
+    filevers=(1, 1, 0, 0),
+    prodvers=(1, 1, 0, 0),
     mask=0x3f,
     flags=0x0,
     OS=0x40004,
@@ -17,12 +17,12 @@ VSVersionInfo(
           [
             StringStruct(u'CompanyName',      u'Boletas Software'),
             StringStruct(u'FileDescription',  u'Boletas V1 - Sistema de Boletas de Pago'),
-            StringStruct(u'FileVersion',      u'1.0.0.0'),
+            StringStruct(u'FileVersion',      u'1.1.0.0'),
             StringStruct(u'InternalName',     u'Boletas'),
             StringStruct(u'LegalCopyright',   u'Copyright 2025 Boletas Software'),
             StringStruct(u'OriginalFilename', u'Boletas.exe'),
             StringStruct(u'ProductName',      u'Boletas V1'),
-            StringStruct(u'ProductVersion',   u'1.0.0.0'),
+            StringStruct(u'ProductVersion',   u'1.1.0.0'),
           ]
         )
       ]

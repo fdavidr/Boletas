@@ -26,7 +26,7 @@ else:
 # Importar base de datos
 from config.database import db, init_db
 from config.empresa_db import EmpresaConfig
-from config.models import UsuarioSistema
+from config.models import UsuarioSistema, DocumentoEmitido
 from models.boleta_mensual import BoletaMensual
 from models.boleta_aguinaldo import BoletaAguinaldo
 from models.boleta_liquidacion import BoletaLiquidacion
@@ -258,6 +258,33 @@ def empleados():
     """Página de gestión de empleados"""
     return render_template('empleados.html')
 
+@app.route('/historial/<int:empleado_id>')
+@login_required
+def historial_empleado(empleado_id):
+    """Página de historial de documentos de un empleado"""
+    return render_template('historial.html', empleado_id=empleado_id)
+
+@app.route('/api/historial/<int:empleado_id>', methods=['GET'])
+@login_required
+def get_historial_empleado(empleado_id):
+    """Devuelve el historial de documentos emitidos para un empleado"""
+    try:
+        from config.models import Empleado as EmpleadoModel
+        empleado = EmpleadoModel.query.get(empleado_id)
+        if not empleado:
+            return jsonify({'success': False, 'message': 'Empleado no encontrado'}), 404
+        docs = (DocumentoEmitido.query
+                .filter_by(empleado_ci=empleado.ci)
+                .order_by(DocumentoEmitido.created_at.desc())
+                .all())
+        return jsonify({
+            'success': True,
+            'empleado': empleado.to_dict(),
+            'documentos': [d.to_dict() for d in docs],
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
 # Ruta para servir el logo desde la base de datos
 @app.route('/uploads/logo')
 def serve_logo():
@@ -394,7 +421,25 @@ def generar_boleta_mensual():
         boleta.numero_boleta = empresa_config.get_next_numero_boleta()
         pdf_gen = PDFGenerator(empresa_config, app.config['OUTPUT_FOLDER'])
         filename = pdf_gen.generar_boleta_mensual(boleta)
-        
+
+        # Registrar documento emitido
+        try:
+            from config.models import Empleado as EmpleadoModel
+            emp = EmpleadoModel.query.filter_by(ci=boleta.ci).first()
+            doc = DocumentoEmitido(
+                empleado_id=emp.id if emp else None,
+                empleado_ci=boleta.ci,
+                empleado_nombre=boleta.nombre_completo,
+                tipo_documento='mensual',
+                numero_boleta=boleta.numero_boleta,
+                filename=os.path.basename(filename),
+                fecha_emision=boleta.fecha_emision.strftime('%d/%m/%Y'),
+            )
+            db.session.add(doc)
+            db.session.commit()
+        except Exception:
+            pass
+
         return jsonify({
             'success': True,
             'message': 'Boleta generada correctamente',
@@ -432,7 +477,25 @@ def generar_boleta_aguinaldo():
         boleta.numero_boleta = empresa_config.get_next_numero_boleta()
         pdf_gen = PDFGenerator(empresa_config, app.config['OUTPUT_FOLDER'])
         filename = pdf_gen.generar_boleta_aguinaldo(boleta)
-        
+
+        # Registrar documento emitido
+        try:
+            from config.models import Empleado as EmpleadoModel
+            emp = EmpleadoModel.query.filter_by(ci=boleta.ci).first()
+            doc = DocumentoEmitido(
+                empleado_id=emp.id if emp else None,
+                empleado_ci=boleta.ci,
+                empleado_nombre=boleta.nombre_completo,
+                tipo_documento='aguinaldo',
+                numero_boleta=boleta.numero_boleta,
+                filename=os.path.basename(filename),
+                fecha_emision=boleta.fecha_emision.strftime('%d/%m/%Y'),
+            )
+            db.session.add(doc)
+            db.session.commit()
+        except Exception:
+            pass
+
         return jsonify({
             'success': True,
             'message': 'Boleta generada correctamente',
@@ -485,7 +548,25 @@ def generar_boleta_liquidacion():
         boleta.numero_boleta = empresa_config.get_next_numero_boleta()
         pdf_gen = PDFGenerator(empresa_config, app.config['OUTPUT_FOLDER'])
         filename = pdf_gen.generar_boleta_liquidacion(boleta)
-        
+
+        # Registrar documento emitido
+        try:
+            from config.models import Empleado as EmpleadoModel
+            emp = EmpleadoModel.query.filter_by(ci=boleta.ci).first()
+            doc = DocumentoEmitido(
+                empleado_id=emp.id if emp else None,
+                empleado_ci=boleta.ci,
+                empleado_nombre=boleta.nombre_completo,
+                tipo_documento='liquidacion',
+                numero_boleta=boleta.numero_boleta,
+                filename=os.path.basename(filename),
+                fecha_emision=boleta.fecha_emision.strftime('%d/%m/%Y'),
+            )
+            db.session.add(doc)
+            db.session.commit()
+        except Exception:
+            pass
+
         return jsonify({
             'success': True,
             'message': 'Boleta generada correctamente',

@@ -11,6 +11,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
+from reportlab.lib.utils import ImageReader
 from datetime import datetime
 
 class PDFGenerator:
@@ -103,31 +104,27 @@ class PDFGenerator:
         # Header horizontal: Logo - Título - Datos Empresa
         empresa = self.empresa_config.get_empresa_data()
         
-        # Logo (columna izquierda) - flotante con proporciones preservadas
-        logo = None
+        # Logo flotante: se dibuja sobre el canvas sin ocupar espacio en el flujo
+        logo_data_for_canvas = None
+        logo_w_canvas = 0
+        logo_h_canvas = 0
         if self.empresa_config.logo_exists():
             try:
                 logo_data, logo_mimetype = self.empresa_config.get_logo_data()
                 if logo_data:
                     from PIL import Image as PILImage
-                    # Cargar imagen desde bytes para obtener dimensiones
                     img_stream = BytesIO(logo_data)
                     img = PILImage.open(img_stream)
                     aspect_ratio = img.width / img.height
-                    logo_height = 2.0 * inch  # Aumentado de 0.8 a 2.0 inches para mayor visibilidad
-                    logo_width = logo_height * aspect_ratio
-                    # Crear imagen de ReportLab desde bytes
-                    logo_stream = BytesIO(logo_data)
-                    logo = Image(logo_stream, width=logo_width, height=logo_height)
+                    logo_h_canvas = 1.5 * inch
+                    logo_w_canvas = logo_h_canvas * aspect_ratio
+                    logo_data_for_canvas = logo_data
             except Exception as e:
-                print(f"Error al cargar logo: {e}")
-                logo = ''
-        else:
-            logo = ''
-        
+                print(f"Error al cargar logo para canvas: {e}")
+
         # Título (columna central)
         titulo = Paragraph(f"<b>BOLETA DE PAGO</b><br/><font size=9>No. {boleta.numero_boleta}</font>", title_style)
-        
+
         # Datos empresa (columna derecha)
         datos_empresa = Paragraph(
             f"<b>{empresa['nombre']}</b><br/>"
@@ -137,9 +134,9 @@ class PDFGenerator:
             f"{empresa.get('direccion', 'N/A')}",
             empresa_style
         )
-        
-        # Tabla de header con 3 columnas (ancho de columna derecha = ancho de logo)
-        header_data = [[logo, titulo, datos_empresa]]
+
+        # Tabla de header: col 0 vacía (el logo se dibuja flotante), col 1 título, col 2 empresa
+        header_data = [['', titulo, datos_empresa]]
         header_table = Table(header_data, colWidths=[2.5*inch, 3*inch, 2.5*inch])
         header_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (0, 0), 'LEFT'),
@@ -321,9 +318,25 @@ class PDFGenerator:
         ]))
         
         elements.append(tabla_firmas)
-        
-        # Construir PDF
-        doc.build(elements)
+
+        # Construir PDF con logo flotante sobre canvas
+        if logo_data_for_canvas:
+            _ldata = logo_data_for_canvas
+            _lw    = logo_w_canvas
+            _lh    = logo_h_canvas
+            _x     = 0.5 * inch
+            _y     = letter[1] - 0.3 * inch - _lh
+
+            def _draw_logo_mensual(canvas, doc_):
+                canvas.saveState()
+                reader = ImageReader(BytesIO(_ldata))
+                canvas.drawImage(reader, _x, _y, width=_lw, height=_lh,
+                                 mask='auto', preserveAspectRatio=True)
+                canvas.restoreState()
+
+            doc.build(elements, onFirstPage=_draw_logo_mensual, onLaterPages=_draw_logo_mensual)
+        else:
+            doc.build(elements)
         return filename
     
     def generar_boleta_aguinaldo(self, boleta):
@@ -355,31 +368,27 @@ class PDFGenerator:
         # Header horizontal: Logo - Título - Datos Empresa
         empresa = self.empresa_config.get_empresa_data()
         
-        # Logo (columna izquierda)
-        logo = None
+        # Logo flotante: se dibuja sobre el canvas sin ocupar espacio en el flujo
+        logo_data_for_canvas = None
+        logo_w_canvas = 0
+        logo_h_canvas = 0
         if self.empresa_config.logo_exists():
             try:
                 logo_data, logo_mimetype = self.empresa_config.get_logo_data()
                 if logo_data:
                     from PIL import Image as PILImage
-                    # Cargar imagen desde bytes para obtener dimensiones
                     img_stream = BytesIO(logo_data)
                     img = PILImage.open(img_stream)
                     aspect_ratio = img.width / img.height
-                    logo_height = 2.0 * inch  # Aumentado de 0.8 a 2.0 inches para mayor visibilidad
-                    logo_width = logo_height * aspect_ratio
-                    # Crear imagen de ReportLab desde bytes
-                    logo_stream = BytesIO(logo_data)
-                    logo = Image(logo_stream, width=logo_width, height=logo_height)
+                    logo_h_canvas = 1.5 * inch
+                    logo_w_canvas = logo_h_canvas * aspect_ratio
+                    logo_data_for_canvas = logo_data
             except Exception as e:
-                print(f"Error al cargar logo: {e}")
-                logo = ''
-        else:
-            logo = ''
-        
+                print(f"Error al cargar logo para canvas: {e}")
+
         # Título (columna central)
         titulo = Paragraph(f"<b>BOLETA DE AGUINALDO</b><br/><font size=9>No. {boleta.numero_boleta}</font>", title_style)
-        
+
         # Datos empresa (columna derecha)
         datos_empresa = Paragraph(
             f"<b>{empresa['nombre']}</b><br/>"
@@ -389,9 +398,9 @@ class PDFGenerator:
             f"{empresa.get('direccion', 'N/A')}",
             empresa_style
         )
-        
-        # Tabla de header con 3 columnas
-        header_data = [[logo, titulo, datos_empresa]]
+
+        # Tabla de header: col 0 vacía (el logo se dibuja flotante), col 1 título, col 2 empresa
+        header_data = [['', titulo, datos_empresa]]
         header_table = Table(header_data, colWidths=[2.5*inch, 3*inch, 2.5*inch])
         header_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (0, 0), 'LEFT'),
@@ -502,17 +511,33 @@ class PDFGenerator:
         ]))
         
         elements.append(tabla_firmas)
-        
-        # Construir PDF con márgenes compactos
+
+        # Construir PDF con logo flotante sobre canvas
         doc = SimpleDocTemplate(
-            filename, 
+            filename,
             pagesize=letter,
             topMargin=0.3*inch,
             bottomMargin=0.3*inch,
             leftMargin=0.5*inch,
             rightMargin=0.5*inch
         )
-        doc.build(elements)
+        if logo_data_for_canvas:
+            _ldata = logo_data_for_canvas
+            _lw    = logo_w_canvas
+            _lh    = logo_h_canvas
+            _x     = 0.5 * inch
+            _y     = letter[1] - 0.3 * inch - _lh
+
+            def _draw_logo_aguinaldo(canvas, doc_):
+                canvas.saveState()
+                reader = ImageReader(BytesIO(_ldata))
+                canvas.drawImage(reader, _x, _y, width=_lw, height=_lh,
+                                 mask='auto', preserveAspectRatio=True)
+                canvas.restoreState()
+
+            doc.build(elements, onFirstPage=_draw_logo_aguinaldo, onLaterPages=_draw_logo_aguinaldo)
+        else:
+            doc.build(elements)
         return filename
     
     def generar_boleta_liquidacion(self, boleta):

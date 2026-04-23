@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial de Documentos - BOLETAS-V1</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>📂 Historial de Documentos</h1>
+            <p id="subtitulo_empleado">Cargando...</p>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="nav-content">
+            <a href="/" class="nav-link">🏠 Inicio</a>
+            <a href="/mensual" class="nav-link">📄 Boleta Mensual</a>
+            <a href="/aguinaldo" class="nav-link">🎁 Aguinaldo</a>
+            <a href="/liquidacion" class="nav-link">📋 Liquidación</a>
+            <a href="/empleados" class="nav-link">👥 Empleados</a>
+            <a href="/config" class="nav-link">⚙️ Configuración</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="alert" class="alert"></div>
+
+        <div class="form-container fade-in">
+            <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.2rem;">
+                <a href="/empleados" class="btn btn-secondary" style="text-decoration:none;">← Volver a Empleados</a>
+                <h3 class="form-title" style="margin:0;" id="titulo_historial">Documentos Emitidos</h3>
+            </div>
+
+            <!-- Filtro por tipo -->
+            <div style="margin-bottom:1rem; display:flex; gap:0.75rem; flex-wrap:wrap; align-items:center;">
+                <label style="font-weight:600; color:var(--text-color);">Filtrar por tipo:</label>
+                <button class="btn btn-small filtro-btn active" data-tipo="todos" onclick="filtrarTipo('todos', this)">Todos</button>
+                <button class="btn btn-small filtro-btn" data-tipo="mensual" onclick="filtrarTipo('mensual', this)">📄 Mensual</button>
+                <button class="btn btn-small filtro-btn" data-tipo="aguinaldo" onclick="filtrarTipo('aguinaldo', this)">🎁 Aguinaldo</button>
+                <button class="btn btn-small filtro-btn" data-tipo="liquidacion" onclick="filtrarTipo('liquidacion', this)">📋 Liquidación</button>
+            </div>
+
+            <div id="lista_documentos" class="table-container">
+                <p style="text-align:center; color:var(--text-light); padding:2rem;">Cargando historial...</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p><strong>BOLETAS-V1</strong> © 2025 - Sistema de Gestión de Boletas de Pago</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        const empleadoId = {{ empleado_id }};
+        let todosDocumentos = [];
+
+        document.addEventListener('DOMContentLoaded', function () {
+            cargarHistorial();
+        });
+
+        async function cargarHistorial() {
+            try {
+                const response = await fetch(`/api/historial/${empleadoId}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    const emp = result.empleado;
+                    document.getElementById('subtitulo_empleado').textContent =
+                        `${emp.nombre_completo} — C.I. ${emp.ci} — ${emp.cargo}`;
+                    document.getElementById('titulo_historial').textContent =
+                        `Documentos Emitidos para ${emp.nombre_completo}`;
+
+                    todosDocumentos = result.documentos;
+                    mostrarDocumentos(todosDocumentos);
+                } else {
+                    showAlert('❌ ' + result.message, 'error');
+                }
+            } catch (error) {
+                showAlert('❌ Error al cargar historial: ' + error.message, 'error');
+            }
+        }
+
+        function mostrarDocumentos(docs) {
+            const container = document.getElementById('lista_documentos');
+
+            if (docs.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:var(--text-light); padding:2rem;">No hay documentos emitidos para este empleado.</p>';
+                return;
+            }
+
+            const badges = {
+                mensual:    '<span class="badge badge-green">📄 Mensual</span>',
+                aguinaldo:  '<span class="badge badge-orange">🎁 Aguinaldo</span>',
+                liquidacion:'<span class="badge badge-red">📋 Liquidación</span>',
+            };
+
+            let html = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>N° Boleta</th>
+                            <th>Tipo</th>
+                            <th>Fecha Emisión</th>
+                            <th>Generado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            docs.forEach((doc, idx) => {
+                const badge = badges[doc.tipo_documento] || doc.tipo_documento;
+                html += `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td><strong>${doc.numero_boleta}</strong></td>
+                        <td>${badge}</td>
+                        <td>${doc.fecha_emision}</td>
+                        <td style="font-size:0.85em; color:var(--text-light);">${doc.created_at}</td>
+                        <td>
+                            <a href="/api/download/${encodeURIComponent(doc.filename)}"
+                               class="btn btn-small btn-success" title="Descargar PDF"
+                               style="text-decoration:none; font-size:0.8rem; padding:4px 10px;">
+                                ⬇️ Descargar
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function filtrarTipo(tipo, btn) {
+            // Actualizar botones activos
+            document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            if (tipo === 'todos') {
+                mostrarDocumentos(todosDocumentos);
+            } else {
+                mostrarDocumentos(todosDocumentos.filter(d => d.tipo_documento === tipo));
+            }
+        }
+    </script>
+
+    <style>
+        .table-container { overflow-x: auto; }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.5rem;
+        }
+        .table th, .table td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .table th {
+            background-color: var(--primary-color);
+            color: var(--white);
+            font-weight: 600;
+        }
+        .table tbody tr:hover { background-color: var(--light-bg); }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .badge-green  { background: #d4f5e2; color: #1a7a42; }
+        .badge-orange { background: #fde8c8; color: #a05a00; }
+        .badge-red    { background: #fde0de; color: #a01a16; }
+
+        .btn-small { font-size: 0.82rem; padding: 5px 12px; }
+
+        .filtro-btn {
+            background: var(--light-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+        .filtro-btn.active {
+            background: var(--primary-color);
+            color: var(--white);
+            border-color: var(--primary-color);
+        }
+        .filtro-btn:hover { opacity: 0.85; }
+    </style>
+</body>
+</html>

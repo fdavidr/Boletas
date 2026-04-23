@@ -2,7 +2,7 @@
 ; Descarga Inno Setup desde: https://jrsoftware.org/isdl.php
 
 #define MyAppName      "Boletas V1"
-#define MyAppVersion   "1.0.0"
+#define MyAppVersion   "1.1.0"
 #define MyAppPublisher "Boletas Software"
 #define MyAppExeName   "Boletas.exe"
 #define MyAppDir       "..\dist\Boletas"
