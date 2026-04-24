@@ -752,14 +752,14 @@ class PDFGenerator:
         elements.append(tabla_liquido)
         elements.append(Spacer(1, 0.1*inch))
 
-        # ── Nota (siempre visible con 10 líneas vacías de espacio) ───────────
+        # ── Nota (siempre visible con 15 líneas vacías de espacio) ───────────
         nota_texto = getattr(boleta, 'nota', '').strip()
-        saltos = '<br/>' * 10
+        saltos = '<br/>' * 15
         data_nota = [
             ['NOTA'],
             [Paragraph(nota_texto + saltos, nota_style)],
         ]
-        tabla_nota = Table(data_nota, colWidths=[7.5*inch], rowHeights=[None, 2.0*inch])
+        tabla_nota = Table(data_nota, colWidths=[7.5*inch], rowHeights=[None, 2.7*inch])
         tabla_nota.setStyle(TableStyle([
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, 0), 9),
@@ -818,8 +818,10 @@ class PDFGenerator:
 
         empresa = self.empresa_config.get_empresa_data()
 
-        # Logo
-        logo = ''
+        # Logo flotante: se dibuja sobre el canvas sin ocupar espacio en el flujo
+        logo_data_for_canvas = None
+        logo_w_canvas = 0
+        logo_h_canvas = 0
         if self.empresa_config.logo_exists():
             try:
                 logo_data, logo_mimetype = self.empresa_config.get_logo_data()
@@ -828,12 +830,11 @@ class PDFGenerator:
                     img_stream = BytesIO(logo_data)
                     img = PILImage.open(img_stream)
                     aspect_ratio = img.width / img.height
-                    logo_height = 2.0 * inch
-                    logo_width = logo_height * aspect_ratio
-                    logo_stream = BytesIO(logo_data)
-                    logo = Image(logo_stream, width=logo_width, height=logo_height)
+                    logo_h_canvas = 1.5 * inch
+                    logo_w_canvas = logo_h_canvas * aspect_ratio
+                    logo_data_for_canvas = logo_data
             except Exception as e:
-                print(f"Error al cargar logo: {e}")
+                print(f"Error al cargar logo para canvas: {e}")
 
         titulo = Paragraph(f"<b>BOLETA DE PAGO</b><br/><font size=9>No. {numero_boleta}</font>", title_style)
         datos_empresa = Paragraph(
@@ -843,7 +844,7 @@ class PDFGenerator:
             f"Tel: {empresa.get('telefono', 'N/A')}<br/>"
             f"{empresa.get('direccion', 'N/A')}", empresa_style)
 
-        header_table = Table([[logo, titulo, datos_empresa]], colWidths=[2.5*inch, 3*inch, 2.5*inch])
+        header_table = Table([['', titulo, datos_empresa]], colWidths=[2.5*inch, 3*inch, 2.5*inch])
         header_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (0, 0), 'LEFT'),
             ('ALIGN', (1, 0), (1, 0), 'CENTER'),
@@ -936,7 +937,24 @@ class PDFGenerator:
         ]))
         elements.append(tabla_firmas)
 
-        doc.build(elements)
+        # Construir PDF con logo flotante sobre canvas
+        if logo_data_for_canvas:
+            _ldata = logo_data_for_canvas
+            _lw    = logo_w_canvas
+            _lh    = logo_h_canvas
+            _x     = 0.5 * inch
+            _y     = letter[1] - 0.3 * inch - _lh
+
+            def _draw_logo_mensual_blank(canvas, doc_):
+                canvas.saveState()
+                reader = ImageReader(BytesIO(_ldata))
+                canvas.drawImage(reader, _x, _y, width=_lw, height=_lh,
+                                 mask='auto', preserveAspectRatio=True)
+                canvas.restoreState()
+
+            doc.build(elements, onFirstPage=_draw_logo_mensual_blank, onLaterPages=_draw_logo_mensual_blank)
+        else:
+            doc.build(elements)
         return filename
 
     def generar_boleta_aguinaldo_blank(self, numero_boleta):
@@ -957,7 +975,10 @@ class PDFGenerator:
 
         empresa = self.empresa_config.get_empresa_data()
 
-        logo = ''
+        # Logo flotante: se dibuja sobre el canvas sin ocupar espacio en el flujo
+        logo_data_for_canvas = None
+        logo_w_canvas = 0
+        logo_h_canvas = 0
         if self.empresa_config.logo_exists():
             try:
                 logo_data, logo_mimetype = self.empresa_config.get_logo_data()
@@ -966,12 +987,11 @@ class PDFGenerator:
                     img_stream = BytesIO(logo_data)
                     img = PILImage.open(img_stream)
                     aspect_ratio = img.width / img.height
-                    logo_height = 2.0 * inch
-                    logo_width = logo_height * aspect_ratio
-                    logo_stream = BytesIO(logo_data)
-                    logo = Image(logo_stream, width=logo_width, height=logo_height)
+                    logo_h_canvas = 1.5 * inch
+                    logo_w_canvas = logo_h_canvas * aspect_ratio
+                    logo_data_for_canvas = logo_data
             except Exception as e:
-                print(f"Error al cargar logo: {e}")
+                print(f"Error al cargar logo para canvas: {e}")
 
         titulo = Paragraph(f"<b>BOLETA DE AGUINALDO</b><br/><font size=9>No. {numero_boleta}</font>", title_style)
         datos_empresa = Paragraph(
@@ -981,7 +1001,7 @@ class PDFGenerator:
             f"Tel: {empresa.get('telefono', 'N/A')}<br/>"
             f"{empresa.get('direccion', 'N/A')}", empresa_style)
 
-        header_table = Table([[logo, titulo, datos_empresa]], colWidths=[2.5*inch, 3*inch, 2.5*inch])
+        header_table = Table([['', titulo, datos_empresa]], colWidths=[2.5*inch, 3*inch, 2.5*inch])
         header_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (0, 0), 'LEFT'),
             ('ALIGN', (1, 0), (1, 0), 'CENTER'),
@@ -1057,7 +1077,24 @@ class PDFGenerator:
         ]))
         elements.append(tabla_firmas)
 
-        doc.build(elements)
+        # Construir PDF con logo flotante sobre canvas
+        if logo_data_for_canvas:
+            _ldata = logo_data_for_canvas
+            _lw    = logo_w_canvas
+            _lh    = logo_h_canvas
+            _x     = 0.5 * inch
+            _y     = letter[1] - 0.3 * inch - _lh
+
+            def _draw_logo_aguinaldo_blank(canvas, doc_):
+                canvas.saveState()
+                reader = ImageReader(BytesIO(_ldata))
+                canvas.drawImage(reader, _x, _y, width=_lw, height=_lh,
+                                 mask='auto', preserveAspectRatio=True)
+                canvas.restoreState()
+
+            doc.build(elements, onFirstPage=_draw_logo_aguinaldo_blank, onLaterPages=_draw_logo_aguinaldo_blank)
+        else:
+            doc.build(elements)
         return filename
 
     def generar_boleta_liquidacion_blank(self, numero_boleta):
@@ -1228,12 +1265,12 @@ class PDFGenerator:
         elements.append(tabla_liquido)
         elements.append(Spacer(1, 0.1*inch))
 
-        saltos = '<br/>' * 10
+        saltos = '<br/>' * 15
         data_nota = [
             ['NOTA'],
             [Paragraph(saltos, nota_style)],
         ]
-        tabla_nota = Table(data_nota, colWidths=[7.5*inch], rowHeights=[None, 2.0*inch])
+        tabla_nota = Table(data_nota, colWidths=[7.5*inch], rowHeights=[None, 2.7*inch])
         tabla_nota.setStyle(TableStyle([
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, 0), 9),
